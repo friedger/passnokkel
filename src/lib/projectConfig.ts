@@ -12,7 +12,7 @@ import { nip19 } from 'nostr-tools';
  * Swap this string to target a different post.
  */
 export const PROJECT_NEVENT =
-  'nevent1qqsdpen88vy3aq8lxetv8cf55eja2w3jthmk53zy36wtjqntvtee0rspz3mhxue69uhhyetvv9ujuerpd46hxtnfduqs6amnwvaz7tmwdaejumr0dsq3vamnwvaz7tmjv4kxz7fwwpexjmtpdshxuet5qgs8j7scdgg7q86692glw6ucy8rnyu3mqk92q0z3ugksfla80n9735srqsqqqqqpesdr5w';
+  'nevent1qqszlz0a60qytkq0x5rqxu0z9skpmcg0e3eec8fx8hmwuq4mym23a3qpz3mhxue69uhhyetvv9ujuerpd46hxtnfduqs6amnwvaz7tmwdaejumr0dsq3vamnwvaz7tmjv4kxz7fwwpexjmtpdshxuet5qgsd8vclzl45glgsjcej0a9kyf7qnfarw7kh58mtu8z6t3qlrc82ydqrqsqqqqqpm7j7a6';
 
 interface ProjectTarget {
   eventId: string;
@@ -60,6 +60,11 @@ export const HACKATHON = 'And Other Stuff';
 export const IOS_APP_URL = '';
 export const SPEC_URL = 'https://gist.github.com/pretyflaco/bc4eaf35b4a05d5d52906b2d2d6ed585';
 export const REPO_URL = '';
+
+/** Links shown on the presentation deck. Fill these in before presenting. */
+export const HORCRUXBACKUP_ISSUE_URL = '';
+export const DITTO_PR_URL = '';
+export const TREASURES_PR_URL = '';
 
 /** What content to put on the kind-7 reaction event. */
 export const REACTION_CONTENT = '👍';

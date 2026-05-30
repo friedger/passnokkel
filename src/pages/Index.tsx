@@ -115,12 +115,20 @@ const Index = () => {
           </a>
         </div>
 
-        <Link
-          to="/how-it-works"
-          className="mt-16 text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground"
-        >
-          How does this work?
-        </Link>
+        <div className="mt-16 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
+          <Link
+            to="/how-it-works"
+            className="underline underline-offset-4 hover:text-foreground"
+          >
+            How does this work?
+          </Link>
+          <Link
+            to="/presentation"
+            className="underline underline-offset-4 hover:text-foreground"
+          >
+            View the slides
+          </Link>
+        </div>
       </main>
 
       <AuthDialog isOpen={authOpen} onClose={() => setAuthOpen(false)} />
