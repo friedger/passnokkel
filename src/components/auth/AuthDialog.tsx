@@ -4,12 +4,14 @@ import {
   Upload,
   Eye,
   EyeOff,
+  Fingerprint,
   Key,
   ChevronDown,
   ChevronUp,
   Loader2,
   ExternalLink,
 } from 'lucide-react';
+import { passkeysSupported } from '@/lib/passkey';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -116,6 +118,10 @@ const AuthDialog: React.FC<AuthDialogProps> = ({ isOpen, onClose }) => {
   const [showBunkerInput, setShowBunkerInput] = useState(false);
   const [bunkerUri, setBunkerUri] = useState('');
 
+  // Passkey state
+  const [isPasskeyBusy, setIsPasskeyBusy] = useState(false);
+  const passkeysAvailable = passkeysSupported();
+
   const login = useLoginActions();
   // Stable refs so the nostrconnect listening effect below doesn't restart on
   // every parent render. Parents typically pass inline arrow functions for
@@ -165,6 +171,7 @@ const AuthDialog: React.FC<AuthDialogProps> = ({ isOpen, onClose }) => {
       setHasOpenedSigner(false);
       setShowBunkerInput(false);
       setBunkerUri('');
+      setIsPasskeyBusy(false);
       /* eslint-enable react-hooks/set-state-in-effect */
       abortControllerRef.current?.abort();
       abortControllerRef.current = null;
@@ -341,6 +348,27 @@ const AuthDialog: React.FC<AuthDialogProps> = ({ isOpen, onClose }) => {
     reader.readAsText(file);
   };
 
+  const handlePasskey = async (mode: 'create' | 'signin') => {
+    setIsPasskeyBusy(true);
+    try {
+      await login.passkey(mode);
+      onClose();
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      // User-cancel is not an error worth shouting about.
+      const cancelled = /cancel|abort|NotAllowed/i.test(message);
+      if (!cancelled) {
+        toast({
+          title: mode === 'create' ? 'Could not create passkey' : 'Could not sign in with passkey',
+          description: message,
+          variant: 'destructive',
+        });
+      }
+    } finally {
+      setIsPasskeyBusy(false);
+    }
+  };
+
   const handleExtensionLogin = async () => {
     if (!hasExtension) return;
     setIsLoggingIn(true);
@@ -469,21 +497,67 @@ const AuthDialog: React.FC<AuthDialogProps> = ({ isOpen, onClose }) => {
               </div>
 
               <p className="text-sm text-muted-foreground">
-                Join with a new Nostr account, or log in with one you already have.
+                Use a passkey for a seedless Nostr account, or fall back to a classic key.
               </p>
 
+              {passkeysAvailable && (
+                <div className="space-y-2">
+                  <Button
+                    onClick={() => handlePasskey('create')}
+                    disabled={isPasskeyBusy}
+                    className="w-full h-12"
+                  >
+                    {isPasskeyBusy ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Fingerprint className="w-5 h-5 mr-2" />
+                    )}
+                    Create account with passkey
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    onClick={() => handlePasskey('signin')}
+                    disabled={isPasskeyBusy}
+                    className="w-full h-12"
+                  >
+                    <Fingerprint className="w-5 h-5 mr-2" />
+                    Sign in with passkey
+                  </Button>
+                  <div className="relative py-1">
+                    <div className="absolute inset-0 flex items-center">
+                      <span className="w-full border-t" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-background px-2 text-muted-foreground">or</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="space-y-2">
-                <Button onClick={() => setStep('generate')} className="w-full h-12">
-                  Create new account
-                </Button>
                 <Button
                   variant="outline"
+                  onClick={() => setStep('generate')}
+                  disabled={isPasskeyBusy}
+                  className="w-full h-12"
+                >
+                  Create with secret key
+                </Button>
+                <Button
+                  variant="ghost"
                   onClick={() => setStep('login')}
+                  disabled={isPasskeyBusy}
                   className="w-full h-12"
                 >
                   I already have an account
                 </Button>
               </div>
+
+              {!passkeysAvailable && (
+                <p className="text-xs text-muted-foreground">
+                  Passkey login requires a modern browser. You can still use a secret key or remote signer.
+                </p>
+              )}
             </div>
           )}
 

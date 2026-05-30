@@ -8,6 +8,9 @@ import {
 } from '@nostrify/react/login';
 import { useAppContext } from '@/hooks/useAppContext';
 import { APP_RELAYS } from '@/lib/appRelays';
+import { BREEZ_MAGIC, assertPasskey, createPasskey, utf8 } from '@/lib/passkey';
+import { RECEPTION_SALT, deriveNostrAccount, deriveNostrIdentity } from '@/lib/breezKey';
+import { ensureSaltAdvertised } from '@/lib/saltRegistry';
 
 // NOTE: This file should not be edited except for adding new login methods.
 
@@ -44,6 +47,33 @@ export function useLoginActions() {
     async extension(): Promise<void> {
       const login = await NLogin.fromExtension();
       addAndActivate(login);
+    },
+    // Login with a passkey via the Breez Passkey Login spec v0.9.1.
+    // One WebAuthn ceremony yields two PRF outputs: one keyed by MAGIC_BYTES
+    // (→ salt-registry account) and one keyed by RECEPTION_SALT (→ signing
+    // identity). The identity is loaded as a vanilla nsec login so the rest
+    // of the app keeps working unchanged.
+    async passkey(mode: 'create' | 'signin'): Promise<void> {
+      const { prfFirst: accountPrf, prfSecond: identityPrf } = mode === 'create'
+        ? await createPasskey({
+            rpName: 'passnokkel',
+            userName: 'nostr',
+            first: BREEZ_MAGIC,
+            second: utf8(RECEPTION_SALT),
+          })
+        : await assertPasskey({ first: BREEZ_MAGIC, second: utf8(RECEPTION_SALT) });
+
+      const account = deriveNostrAccount(accountPrf);
+      try {
+        await ensureSaltAdvertised(nostr, account.sk, RECEPTION_SALT);
+      } catch (err) {
+        // Salt advertisement is best-effort: a relay outage shouldn't block
+        // sign-in, because the identity is still derivable. Log and continue.
+        console.warn('Salt registry update failed:', err);
+      }
+
+      const identity = deriveNostrIdentity(identityPrf);
+      addAndActivate(NLogin.fromNsec(identity.nsec));
     },
     // Login via nostrconnect:// (client-initiated NIP-46)
     // The client displays a QR code and waits for the remote signer to connect.

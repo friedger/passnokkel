@@ -1,5 +1,5 @@
 {
-  "name": "mkstack",
+  "name": "passnokkel",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -12,6 +12,8 @@
     "@nostrify/nostrify": "^0.52.0",
     "@nostrify/react": "^0.6.0",
     "@radix-ui/react-toast": "^1.2.1",
+    "@scure/bip32": "^2.2.0",
+    "@scure/bip39": "^2.2.0",
     "@tanstack/react-query": "^5.100.5",
     "@unhead/react": "^3.1.0",
     "buffer": "^6.0.3",
