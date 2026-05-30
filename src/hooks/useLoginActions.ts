@@ -8,9 +8,11 @@ import {
 } from '@nostrify/react/login';
 import { useAppContext } from '@/hooks/useAppContext';
 import { APP_RELAYS } from '@/lib/appRelays';
+import { NSecSigner } from '@nostrify/nostrify';
 import { BREEZ_MAGIC, assertPasskey, createPasskey, utf8 } from '@/lib/passkey';
 import { RECEPTION_SALT, deriveNostrAccount, deriveNostrIdentity } from '@/lib/breezKey';
 import { ensureSaltAdvertised } from '@/lib/saltRegistry';
+import { generateRandomProfile } from '@/lib/randomProfile';
 
 // NOTE: This file should not be edited except for adding new login methods.
 
@@ -73,6 +75,31 @@ export function useLoginActions() {
       }
 
       const identity = deriveNostrIdentity(identityPrf);
+
+      // Bootstrap a placeholder profile if the identity has never set one.
+      // We check first so we never overwrite an existing kind-0 (the same
+      // passkey on a different device might already have published a real
+      // profile). Best-effort: a relay outage shouldn't block sign-in.
+      try {
+        const existing = await nostr.query(
+          [{ kinds: [0], authors: [identity.pubkey], limit: 1 }],
+          { signal: AbortSignal.timeout(3000) },
+        );
+        if (existing.length === 0) {
+          const profile = generateRandomProfile(identity.pubkey);
+          const signer = new NSecSigner(identity.sk);
+          const event = await signer.signEvent({
+            kind: 0,
+            content: JSON.stringify(profile),
+            tags: [],
+            created_at: Math.floor(Date.now() / 1000),
+          });
+          await nostr.event(event, { signal: AbortSignal.timeout(5000) });
+        }
+      } catch (err) {
+        console.warn('Profile bootstrap failed:', err);
+      }
+
       addAndActivate(NLogin.fromNsec(identity.nsec));
     },
     // Login via nostrconnect:// (client-initiated NIP-46)

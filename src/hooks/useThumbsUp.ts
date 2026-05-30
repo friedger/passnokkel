@@ -13,6 +13,7 @@ import {
 interface UseThumbsUp {
   count: number;
   reacted: boolean;
+  reactors: string[];
   isPublishing: boolean;
   react: () => Promise<void>;
 }
@@ -77,6 +78,46 @@ export function useThumbsUp(): UseThumbsUp {
     };
   }, [nostr, eventIdLooksReal]);
 
+  // Targeted "did *this* user already react?" query. The long-lived
+  // subscription above eventually delivers stored events too, but it can
+  // race with the first paint after a refresh — leaving the button stuck on
+  // "Upvote" for the user who's already voted. This one-shot keyed on the
+  // current pubkey resolves the question in one round trip and seeds the
+  // reactor set immediately.
+  useEffect(() => {
+    if (!user || !eventIdLooksReal) return;
+    const controller = new AbortController();
+    (async () => {
+      try {
+        const events = await nostr.query(
+          [
+            {
+              kinds: [7],
+              '#e': [PROJECT_EVENT_ID],
+              authors: [user.pubkey],
+              limit: 1,
+            },
+          ],
+          { signal: AbortSignal.timeout(3000) },
+        );
+        const ev = events.find((e) => e.content !== '-');
+        if (ev) {
+          setReactorPubkeys((prev) => {
+            if (prev.has(ev.pubkey)) return prev;
+            const next = new Set(prev);
+            next.add(ev.pubkey);
+            return next;
+          });
+        }
+      } catch (err) {
+        if ((err as Error)?.name !== 'AbortError') {
+          console.warn('Self-reaction check failed:', err);
+        }
+      }
+    })();
+    return () => controller.abort();
+  }, [nostr, user, eventIdLooksReal]);
+
   const reacted = !!user && reactorPubkeys.has(user.pubkey);
 
   const react = useCallback(async () => {
@@ -111,5 +152,11 @@ export function useThumbsUp(): UseThumbsUp {
     }
   }, [publish, reacted, user]);
 
-  return { count: reactorPubkeys.size, reacted, isPublishing, react };
+  return {
+    count: reactorPubkeys.size,
+    reacted,
+    reactors: Array.from(reactorPubkeys),
+    isPublishing,
+    react,
+  };
 }
