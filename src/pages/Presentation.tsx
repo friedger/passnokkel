@@ -17,6 +17,31 @@ import {
 
 const SITE_URL = 'https://passnokkel.netlify.app';
 
+/** A QR card that scales with viewport — large on a projector, snug on a phone. */
+function ResponsiveQR({ value }: { value: string }) {
+  const [size, setSize] = useState(280);
+  useEffect(() => {
+    const compute = () => {
+      // Cap at 460 for projector / desktop. On mobile clamp to the lesser of
+      // (viewport width minus generous gutters) and (viewport height minus
+      // ~360 for header / titles / footer / URL line) so the code always
+      // fits on screen even on a 360×640 phone in landscape.
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      const target = Math.min(460, w - 80, h - 360);
+      setSize(Math.max(180, target));
+    };
+    compute();
+    window.addEventListener('resize', compute);
+    return () => window.removeEventListener('resize', compute);
+  }, []);
+  return (
+    <div className="rounded-2xl bg-white p-3 shadow-2xl shadow-primary/20 sm:rounded-3xl sm:p-6">
+      <QRCodeCanvas value={value} size={size} level="M" />
+    </div>
+  );
+}
+
 interface Slide {
   id: string;
   title: string;
@@ -98,15 +123,13 @@ const SLIDES: Slide[] = [
     title: 'Try it on your phone',
     subtitle: 'Scan to open passnokkel — sign in with a passkey, upvote in one tap.',
     body: (
-      <div className="mx-auto flex w-full max-w-2xl flex-col items-center gap-6">
-        <div className="rounded-3xl bg-white p-8 shadow-2xl shadow-primary/20">
-          <QRCodeCanvas value={SITE_URL} size={420} level="M" />
-        </div>
+      <div className="mx-auto flex w-full max-w-2xl flex-col items-center gap-4 sm:gap-6">
+        <ResponsiveQR value={SITE_URL} />
         <a
           href={SITE_URL}
           target="_blank"
           rel="noreferrer"
-          className="text-lg font-medium tracking-tight text-foreground underline underline-offset-4"
+          className="break-all text-center text-base font-medium tracking-tight text-foreground underline underline-offset-4 sm:text-lg"
         >
           {SITE_URL.replace(/^https?:\/\//, '')}
         </a>
@@ -224,23 +247,23 @@ const Presentation = () => {
         </Link>
       </header>
 
-      <main className="container mx-auto flex flex-1 flex-col items-center justify-center px-6 py-10">
-        <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+      <main className="container mx-auto flex flex-1 flex-col items-center justify-center px-4 py-4 sm:px-6 sm:py-10">
+        <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground sm:text-xs">
           {HACKATHON} · slide {index + 1} of {SLIDES.length}
         </p>
-        <h1 className="mt-3 text-center text-4xl font-bold tracking-tight sm:text-5xl">
+        <h1 className="mt-2 text-center text-2xl font-bold tracking-tight sm:mt-3 sm:text-5xl">
           {slide.title}
         </h1>
         {slide.subtitle && (
-          <p className="mt-3 max-w-2xl text-center text-lg text-muted-foreground">
+          <p className="mt-2 max-w-2xl text-center text-sm text-muted-foreground sm:mt-3 sm:text-lg">
             {slide.subtitle}
           </p>
         )}
 
-        <div className="mt-12 w-full">{slide.body}</div>
+        <div className="mt-6 w-full sm:mt-12">{slide.body}</div>
       </main>
 
-      <footer className="container mx-auto flex items-center justify-between gap-4 px-6 py-6">
+      <footer className="container mx-auto flex items-center justify-between gap-4 px-4 py-4 sm:px-6 sm:py-6">
         <button
           onClick={prev}
           disabled={index === 0}

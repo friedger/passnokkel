@@ -500,7 +500,7 @@ const AuthDialog: React.FC<AuthDialogProps> = ({ isOpen, onClose }) => {
                 Use a passkey for a seedless Nostr account, or fall back to a classic key.
               </p>
 
-              {passkeysAvailable && (
+              {passkeysAvailable ? (
                 <div className="space-y-2">
                   <Button
                     onClick={() => handlePasskey('create')}
@@ -523,39 +523,10 @@ const AuthDialog: React.FC<AuthDialogProps> = ({ isOpen, onClose }) => {
                     <Fingerprint className="w-5 h-5 mr-2" />
                     Sign in with passkey
                   </Button>
-                  <div className="relative py-1">
-                    <div className="absolute inset-0 flex items-center">
-                      <span className="w-full border-t" />
-                    </div>
-                    <div className="relative flex justify-center text-xs uppercase">
-                      <span className="bg-background px-2 text-muted-foreground">or</span>
-                    </div>
-                  </div>
                 </div>
-              )}
-
-              <div className="space-y-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setStep('generate')}
-                  disabled={isPasskeyBusy}
-                  className="w-full h-12"
-                >
-                  Create with secret key
-                </Button>
-                <Button
-                  variant="ghost"
-                  onClick={() => setStep('login')}
-                  disabled={isPasskeyBusy}
-                  className="w-full h-12"
-                >
-                  I already have an account
-                </Button>
-              </div>
-
-              {!passkeysAvailable && (
+              ) : (
                 <p className="text-xs text-muted-foreground">
-                  Passkey login requires a modern browser. You can still use a secret key or remote signer.
+                  Passkey login requires a modern browser with WebAuthn support.
                 </p>
               )}
             </div>

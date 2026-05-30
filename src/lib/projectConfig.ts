@@ -62,9 +62,9 @@ export const SPEC_URL = 'https://gist.github.com/pretyflaco/bc4eaf35b4a05d5d5290
 export const REPO_URL = '';
 
 /** Links shown on the presentation deck. Fill these in before presenting. */
-export const HORCRUXBACKUP_ISSUE_URL = '';
-export const DITTO_PR_URL = '';
-export const TREASURES_PR_URL = '';
+export const HORCRUXBACKUP_ISSUE_URL = 'https://github.com/mplorentz/horcrux/issues/245';
+export const DITTO_PR_URL = 'https://gitworkshop.dev/npub1hlw2enn647n0dc04l4tydv44n4s7z83f9vhz6dpe4qzfwq39jp8swu9ecz/ditto';
+export const TREASURES_PR_URL = 'https://gitworkshop.dev/npub1hlw2enn647n0dc04l4tydv44n4s7z83f9vhz6dpe4qzfwq39jp8swu9ecz/treasures';
 
 /** What content to put on the kind-7 reaction event. */
 export const REACTION_CONTENT = '👍';
