@@ -57,14 +57,16 @@ export const PROJECT_DESCRIPTION =
 export const HACKATHON = 'And Other Stuff';
 
 /** Optional links surfaced on the showcase page. Leave empty to hide. */
-export const IOS_APP_URL = '';
-export const SPEC_URL = 'https://gist.github.com/pretyflaco/bc4eaf35b4a05d5d52906b2d2d6ed585';
-export const REPO_URL = '';
+export const IOS_APP_URL = 'https://github.com/schjonhaug/nostr-passkey-poc';
+export const SPEC_URL = 'https://github.com/breez/passkey-login/blob/main/spec.md';
+export const REPO_URL = 'https://github.com/friedger/passnokkel';
 
 /** Links shown on the presentation deck. Fill these in before presenting. */
 export const HORCRUXBACKUP_ISSUE_URL = 'https://github.com/mplorentz/horcrux/issues/245';
 export const DITTO_PR_URL = 'https://gitworkshop.dev/npub1hlw2enn647n0dc04l4tydv44n4s7z83f9vhz6dpe4qzfwq39jp8swu9ecz/ditto';
 export const TREASURES_PR_URL = 'https://gitworkshop.dev/npub1hlw2enn647n0dc04l4tydv44n4s7z83f9vhz6dpe4qzfwq39jp8swu9ecz/treasures';
+export const CHORUS_PR_URL = 'https://gitworkshop.dev/npub1hlw2enn647n0dc04l4tydv44n4s7z83f9vhz6dpe4qzfwq39jp8swu9ecz/relay.ngit.dev/chorus-collective/prs/nevent1qy28wumn8ghj7un9d3shjtnwva5hgtnyv4mqqg9qc5c785xpz53tff9vv5scf5ffer5pywyv7vgvwakugg6ecsus6sdzl6qp';
+export const CASHU_ISSUE_URL = 'https://github.com/cashubtc/cashu.me/issues/528';
 
 /** What content to put on the kind-7 reaction event. */
 export const REACTION_CONTENT = '👍';

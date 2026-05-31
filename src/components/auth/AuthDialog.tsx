@@ -12,6 +12,7 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { passkeysSupported } from '@/lib/passkey';
+import { hasPasskeyAccount, markPasskeyAccount } from '@/lib/passkeyPresence';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -121,6 +122,11 @@ const AuthDialog: React.FC<AuthDialogProps> = ({ isOpen, onClose }) => {
   // Passkey state
   const [isPasskeyBusy, setIsPasskeyBusy] = useState(false);
   const passkeysAvailable = passkeysSupported();
+  // Whether this browser has a known passkey for the site. Drives the primary
+  // call-to-action: returning users see "Login", newcomers see "Create
+  // account". A plain localStorage read on render keeps it fresh each time the
+  // dialog opens without an effect.
+  const knownPasskey = passkeysAvailable && hasPasskeyAccount();
 
   const login = useLoginActions();
   // Stable refs so the nostrconnect listening effect below doesn't restart on
@@ -352,6 +358,9 @@ const AuthDialog: React.FC<AuthDialogProps> = ({ isOpen, onClose }) => {
     setIsPasskeyBusy(true);
     try {
       await login.passkey(mode);
+      // Remember that this browser now has a passkey, so next time the primary
+      // button offers "Login" instead of "Create account".
+      markPasskeyAccount();
       onClose();
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e);
@@ -503,7 +512,7 @@ const AuthDialog: React.FC<AuthDialogProps> = ({ isOpen, onClose }) => {
               {passkeysAvailable ? (
                 <div className="space-y-2">
                   <Button
-                    onClick={() => handlePasskey('create')}
+                    onClick={() => handlePasskey(knownPasskey ? 'signin' : 'create')}
                     disabled={isPasskeyBusy}
                     className="w-full h-12"
                   >
@@ -512,17 +521,17 @@ const AuthDialog: React.FC<AuthDialogProps> = ({ isOpen, onClose }) => {
                     ) : (
                       <Fingerprint className="w-5 h-5 mr-2" />
                     )}
-                    Create account with passkey
+                    {knownPasskey ? 'Login (with passkey)' : 'Create account (with passkey)'}
                   </Button>
-                  <Button
-                    variant="secondary"
-                    onClick={() => handlePasskey('signin')}
+                  <button
+                    onClick={() => handlePasskey(knownPasskey ? 'create' : 'signin')}
                     disabled={isPasskeyBusy}
-                    className="w-full h-12"
+                    className="w-full text-xs text-muted-foreground hover:text-foreground disabled:opacity-50"
                   >
-                    <Fingerprint className="w-5 h-5 mr-2" />
-                    Sign in with passkey
-                  </Button>
+                    {knownPasskey
+                      ? 'New here? Create an account'
+                      : 'Already have a passkey? Log in'}
+                  </button>
                 </div>
               ) : (
                 <p className="text-xs text-muted-foreground">

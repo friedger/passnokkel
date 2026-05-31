@@ -3,9 +3,11 @@ import { Link } from 'react-router-dom';
 import { useSeoMeta } from '@unhead/react';
 import { ArrowLeft, ArrowRight, ExternalLink, Home } from 'lucide-react';
 
-import { QRCodeCanvas } from '@/components/ui/qrcode';
+import { ResponsiveQR } from '@/components/ResponsiveQR';
 import { cn } from '@/lib/utils';
 import {
+  CASHU_ISSUE_URL,
+  CHORUS_PR_URL,
   DITTO_PR_URL,
   HACKATHON,
   HORCRUXBACKUP_ISSUE_URL,
@@ -17,27 +19,31 @@ import {
 
 const SITE_URL = 'https://passnokkel.netlify.app';
 
-/** A QR card that scales with viewport — large on a projector, snug on a phone. */
-function ResponsiveQR({ value }: { value: string }) {
-  const [size, setSize] = useState(280);
-  useEffect(() => {
-    const compute = () => {
-      // Cap at 460 for projector / desktop. On mobile clamp to the lesser of
-      // (viewport width minus generous gutters) and (viewport height minus
-      // ~360 for header / titles / footer / URL line) so the code always
-      // fits on screen even on a 360×640 phone in landscape.
-      const w = window.innerWidth;
-      const h = window.innerHeight;
-      const target = Math.min(460, w - 80, h - 360);
-      setSize(Math.max(180, target));
-    };
-    compute();
-    window.addEventListener('resize', compute);
-    return () => window.removeEventListener('resize', compute);
+/** The title-slide QR. Uses the shared ResponsiveQR but feeds it a height
+ * reserve measured from the deck's real chrome (header, footer, title block and
+ * the URL line) so the code fills the slide yet never overflows — even on a
+ * small phone with a large system font. */
+function QrSlide({ value }: { value: string }) {
+  const reserveHeight = useCallback(() => {
+    const h = (sel: string) =>
+      document.querySelector(sel)?.getBoundingClientRect().height ?? 0;
+    const url = h('[data-qr-url]');
+    // header + footer + title block + URL line + layout gaps & breathing room.
+    return h('header') + h('footer') + h('[data-deck-head]') + url + 88;
   }, []);
+
   return (
-    <div className="rounded-2xl bg-white p-3 shadow-2xl shadow-primary/20 sm:rounded-3xl sm:p-6">
-      <QRCodeCanvas value={value} size={size} level="M" />
+    <div className="mx-auto flex w-full max-w-2xl flex-col items-center gap-4">
+      <ResponsiveQR value={value} maxSize={460} minSize={140} padding={28} reserveHeight={reserveHeight} />
+      <a
+        data-qr-url
+        href={value}
+        target="_blank"
+        rel="noreferrer"
+        className="break-all text-center text-base font-medium tracking-tight text-foreground underline underline-offset-4 sm:text-lg"
+      >
+        {value.replace(/^https?:\/\//, '')}
+      </a>
     </div>
   );
 }
@@ -122,19 +128,7 @@ const SLIDES: Slide[] = [
     id: 'qr',
     title: 'Try it on your phone',
     subtitle: 'Scan to open passnokkel — sign in with a passkey, upvote in one tap.',
-    body: (
-      <div className="mx-auto flex w-full max-w-2xl flex-col items-center gap-4 sm:gap-6">
-        <ResponsiveQR value={SITE_URL} />
-        <a
-          href={SITE_URL}
-          target="_blank"
-          rel="noreferrer"
-          className="break-all text-center text-base font-medium tracking-tight text-foreground underline underline-offset-4 sm:text-lg"
-        >
-          {SITE_URL.replace(/^https?:\/\//, '')}
-        </a>
-      </div>
-    ),
+    body: <QrSlide value={SITE_URL} />,
   },
   {
     id: 'ios',
@@ -193,8 +187,10 @@ const SLIDES: Slide[] = [
         <LinkPill href="https://github.com/nostr-protocol/nips/blob/master/06.md" label="NIP-06 — key derivation from seed" />
         <LinkPill href="https://github.com/nostr-protocol/nips/blob/master/25.md" label="NIP-25 — reactions" />
         <LinkPill href={`https://njump.me/${PROJECT_NEVENT}`} label="The note we're upvoting (njump)" />
-        <LinkPill href={TREASURES_PR_URL} label="treasures.to MR" />
-        <LinkPill href={DITTO_PR_URL} label="Ditto MR" />
+        <LinkPill href={DITTO_PR_URL} label="Ditto passkey-login PR" />
+        <LinkPill href={TREASURES_PR_URL} label="treasures.to passkey-login PR" />
+        <LinkPill href={CHORUS_PR_URL} label="chorus-collective passkey-login PR" />
+        <LinkPill href={CASHU_ISSUE_URL} label="cashu.me passkey-login PR" />
       </div>
     ),
   },
@@ -248,17 +244,19 @@ const Presentation = () => {
       </header>
 
       <main className="container mx-auto flex flex-1 flex-col items-center justify-center px-4 py-4 sm:px-6 sm:py-10">
-        <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground sm:text-xs">
-          {HACKATHON} · slide {index + 1} of {SLIDES.length}
-        </p>
-        <h1 className="mt-2 text-center text-2xl font-bold tracking-tight sm:mt-3 sm:text-5xl">
-          {slide.title}
-        </h1>
-        {slide.subtitle && (
-          <p className="mt-2 max-w-2xl text-center text-sm text-muted-foreground sm:mt-3 sm:text-lg">
-            {slide.subtitle}
+        <div data-deck-head className="flex w-full flex-col items-center">
+          <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground sm:text-xs">
+            {HACKATHON} · slide {index + 1} of {SLIDES.length}
           </p>
-        )}
+          <h1 className="mt-2 text-center text-2xl font-bold tracking-tight sm:mt-3 sm:text-5xl">
+            {slide.title}
+          </h1>
+          {slide.subtitle && (
+            <p className="mt-2 max-w-2xl text-center text-sm text-muted-foreground sm:mt-3 sm:text-lg">
+              {slide.subtitle}
+            </p>
+          )}
+        </div>
 
         <div className="mt-6 w-full sm:mt-12">{slide.body}</div>
       </main>

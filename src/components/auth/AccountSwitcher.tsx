@@ -1,4 +1,5 @@
-import { ChevronDown, LogOut, UserIcon, UserPlus } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { ChevronDown, KeyRound, LogOut, UserIcon, UserPlus, Wallet } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,6 +17,7 @@ interface AccountSwitcherProps {
 
 export function AccountSwitcher({ onAddAccountClick }: AccountSwitcherProps) {
   const { currentUser, otherUsers, isLoading, setLogin, removeLogin } = useLoggedInAccounts();
+  const navigate = useNavigate();
 
   if (!currentUser) return null;
 
@@ -82,6 +84,20 @@ export function AccountSwitcher({ onAddAccountClick }: AccountSwitcherProps) {
           );
         })}
         <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onClick={() => navigate('/wallet')}
+          className='flex items-center gap-2 cursor-pointer p-2 rounded-md'
+        >
+          <Wallet className='w-4 h-4' />
+          <span>Wallet</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => navigate('/export')}
+          className='flex items-center gap-2 cursor-pointer p-2 rounded-md'
+        >
+          <KeyRound className='w-4 h-4' />
+          <span>Export</span>
+        </DropdownMenuItem>
         <DropdownMenuItem
           onClick={onAddAccountClick}
           className='flex items-center gap-2 cursor-pointer p-2 rounded-md'

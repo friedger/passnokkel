@@ -23,14 +23,21 @@ export interface DerivedKey {
   nsec: string;
 }
 
-function prfToHDKey(prf: Uint8Array, path: string): Uint8Array {
-  // PRF output is 32 bytes; that's the BIP39 entropy budget for a 24-word
-  // mnemonic. Going through the mnemonic step (rather than using PRF bytes
-  // directly as a seed) keeps us NIP-06 compatible — same entropy in either
-  // an iOS-side or web-side derivation yields the same nostr key.
+/**
+ * The BIP39 mnemonic for a 32-byte PRF output. PRF output is exactly the
+ * entropy budget for a 24-word mnemonic. Going through the mnemonic step
+ * (rather than using PRF bytes directly as a seed) keeps us NIP-06 compatible
+ * — the same entropy on iOS or web yields the same nostr key — and it is the
+ * recovery phrase a user can export to use this identity, and its derived
+ * wallet keys, in any standard BIP39 wallet.
+ */
+export function mnemonicFromPrf(prf: Uint8Array): string {
   if (prf.length !== 32) throw new Error(`expected 32-byte PRF, got ${prf.length}`);
-  const mnemonic = entropyToMnemonic(prf, wordlist);
-  const seed = mnemonicToSeedSync(mnemonic);
+  return entropyToMnemonic(prf, wordlist);
+}
+
+function prfToHDKey(prf: Uint8Array, path: string): Uint8Array {
+  const seed = mnemonicToSeedSync(mnemonicFromPrf(prf));
   const node = HDKey.fromMasterSeed(seed).derive(path);
   if (!node.privateKey) throw new Error('Derivation produced no private key');
   return node.privateKey;
