@@ -13,11 +13,11 @@ import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useThumbsUp } from '@/hooks/useThumbsUp';
 import { toast } from '@/hooks/useToast';
 import {
-  PROJECT_AUTHOR_PUBKEY,
-  PROJECT_EVENT_ID,
   PROJECT_NAME,
   PROJECT_NEVENT,
   PROJECT_TAGLINE,
+  PROJECT_ZAP_AUTHOR_PUBKEY,
+  PROJECT_ZAP_EVENT_ID,
 } from '@/lib/projectConfig';
 
 const Index = () => {
@@ -31,7 +31,7 @@ const Index = () => {
   const [authOpen, setAuthOpen] = useState(false);
   const [zapOpen, setZapOpen] = useState(false);
 
-  const canZap = !!PROJECT_EVENT_ID && !!PROJECT_AUTHOR_PUBKEY;
+  const canZap = !!PROJECT_ZAP_EVENT_ID && !!PROJECT_ZAP_AUTHOR_PUBKEY;
 
   const onZapClick = () => {
     if (!user) {
@@ -108,18 +108,6 @@ const Index = () => {
             <span>{buttonLabel}</span>
           </Button>
 
-          {canZap && (
-            <Button
-              onClick={onZapClick}
-              variant="outline"
-              size="lg"
-              className="h-12 gap-2 rounded-full border-amber-500/40 px-7 text-amber-600 hover:bg-amber-500/10 hover:text-amber-700"
-            >
-              <Zap className="size-5" />
-              <span>{user ? 'Zap — put money on it' : 'Sign in to zap'}</span>
-            </Button>
-          )}
-
           <div className="flex items-baseline gap-2 text-muted-foreground">
             <span className="text-3xl">👍</span>
             <span className="text-2xl font-semibold tabular-nums text-foreground">
@@ -136,12 +124,6 @@ const Index = () => {
             </div>
           )}
 
-          {canZap && (
-            <div className="mt-4 w-full max-w-md">
-              <ZapList eventId={PROJECT_EVENT_ID} />
-            </div>
-          )}
-
           <a
             href={`https://njump.me/${PROJECT_NEVENT}`}
             target="_blank"
@@ -150,6 +132,21 @@ const Index = () => {
           >
             see the post on njump
           </a>
+
+          {canZap && (
+            <div className="mt-4 flex w-full max-w-md flex-col items-center gap-4">
+              <Button
+                onClick={onZapClick}
+                variant="outline"
+                size="lg"
+                className="h-12 gap-2 rounded-full border-amber-500/40 px-7 text-amber-600 hover:bg-amber-500/10 hover:text-amber-700"
+              >
+                <Zap className="size-5" />
+                <span>{user ? 'Zap — put money on it' : 'Sign in to zap'}</span>
+              </Button>
+              <ZapList eventId={PROJECT_ZAP_EVENT_ID} />
+            </div>
+          )}
         </div>
 
         <div className="mt-16 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
@@ -173,9 +170,9 @@ const Index = () => {
         <ZapDialog
           isOpen={zapOpen}
           onClose={() => setZapOpen(false)}
-          recipientPubkey={PROJECT_AUTHOR_PUBKEY}
-          eventId={PROJECT_EVENT_ID}
-          noteAuthorPubkey={PROJECT_AUTHOR_PUBKEY}
+          recipientPubkey={PROJECT_ZAP_AUTHOR_PUBKEY}
+          eventId={PROJECT_ZAP_EVENT_ID}
+          noteAuthorPubkey={PROJECT_ZAP_AUTHOR_PUBKEY}
         />
       )}
     </div>

@@ -49,6 +49,25 @@ export const PROJECT_AUTHOR_PUBKEY = target.authorPubkey;
 /** Relay hints embedded in the nevent (informational; the pool uses APP_RELAYS). */
 export const PROJECT_RELAY_HINTS = target.relayHints;
 
+/**
+ * The note people can zap — separate from the upvote target above. Zaps and
+ * their boosted-upvote reactions reference THIS event.
+ */
+export const PROJECT_ZAP_NEVENT =
+  'nevent1qqsvwk7rnrdsuyjzpmryf3pq6en693p5q638pwu0lumsqarqhcgmq4q44a0wc';
+
+const zapTarget = decodeProjectTarget(PROJECT_ZAP_NEVENT);
+
+/** Hex event id of the note being zapped. Empty string disables zaps. */
+export const PROJECT_ZAP_EVENT_ID = zapTarget.eventId;
+/**
+ * Hex pubkey of the zap target's author — the zap recipient and kind:10021
+ * advertiser. The nevent above carries only the id, so the author is pinned
+ * here explicitly (resolved from relays).
+ */
+export const PROJECT_ZAP_AUTHOR_PUBKEY =
+  zapTarget.authorPubkey || 'c9e30a01be5de6144dd5199a7b5798357c552d438c6091edcf9a15e4475dde6b';
+
 export const PROJECT_NAME = 'passnokkel';
 export const PROJECT_TAGLINE = 'A Nostr identity from a passkey';
 export const PROJECT_DESCRIPTION =
