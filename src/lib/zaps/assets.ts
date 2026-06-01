@@ -9,6 +9,7 @@
 
 import { stacksAdapter } from './chains/stacks';
 import { evmAdapter } from './chains/evm';
+import { solAdapter } from './chains/sol';
 import type { ChainAdapter } from './chains/types';
 
 export interface StacksToken {
@@ -24,6 +25,19 @@ export interface EvmToken {
   tokenContract: string;
   chainId: number;
   /** Public JSON-RPC endpoint used for nonce/fee lookups, broadcast and verification. */
+  rpcUrl: string;
+}
+
+export interface EvmNativeToken {
+  kind: 'native-evm';
+  chainId: number;
+  /** Public JSON-RPC endpoint used for nonce/fee lookups, broadcast and verification. */
+  rpcUrl: string;
+}
+
+export interface SolToken {
+  kind: 'sol';
+  /** Public Solana JSON-RPC endpoint used for blockhash, broadcast and verification. */
   rpcUrl: string;
 }
 
@@ -51,7 +65,7 @@ export interface ZapAsset {
    * label (e.g. "sats" for sBTC) instead of the decimal symbol.
    */
   baseUnit?: string;
-  token: StacksToken | EvmToken;
+  token: StacksToken | EvmToken | EvmNativeToken | SolToken;
   adapter: ChainAdapter;
 }
 
@@ -100,6 +114,43 @@ export const ZAP_ASSETS: ZapAsset[] = [
       rpcUrl: 'https://ethereum-rpc.publicnode.com',
     },
     adapter: evmAdapter,
+  },
+  {
+    id: 'eth',
+    label: 'ETH',
+    symbol: 'ETH',
+    color: '#627EEA',
+    icon: `${TW}/ethereum/info/logo.png`,
+    chainName: 'Ethereum',
+    caip2: 'eip155:1',
+    // CAIP-19 native asset: slip44 coin type 60.
+    assetId: 'eip155:1/slip44:60',
+    transferType: 'eth-transfer',
+    decimals: 18,
+    token: {
+      kind: 'native-evm',
+      chainId: 1,
+      rpcUrl: 'https://ethereum-rpc.publicnode.com',
+    },
+    adapter: evmAdapter,
+  },
+  {
+    id: 'sol',
+    label: 'SOL',
+    symbol: 'SOL',
+    color: '#9945FF',
+    icon: `${TW}/solana/info/logo.png`,
+    chainName: 'Solana',
+    caip2: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+    // CAIP-19 native asset: slip44 coin type 501.
+    assetId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+    transferType: 'sol-transfer',
+    decimals: 9,
+    token: {
+      kind: 'sol',
+      rpcUrl: 'https://api.mainnet-beta.solana.com',
+    },
+    adapter: solAdapter,
   },
 ];
 

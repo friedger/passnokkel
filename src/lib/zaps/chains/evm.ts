@@ -6,7 +6,7 @@
 import { HDKey } from '@scure/bip32';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import { keccak_256 } from '@noble/hashes/sha3.js';
-import { bytesToHex, concatBytes, hexToBytes } from '@noble/hashes/utils.js';
+import { bytesToHex, concatBytes, hexToBytes, utf8ToBytes } from '@noble/hashes/utils.js';
 
 import type { ChainAdapter, TransferRequest, VerifyParams, VerifyResult } from './types';
 
@@ -24,9 +24,21 @@ function evmPrivateKey(seed: Uint8Array): Uint8Array {
   return node.privateKey;
 }
 
+/** EIP-55 mixed-case checksum so the derived address matches wallet.ts and what
+ * gets advertised in the kind:10021 (EVM addresses are otherwise case-insensitive). */
+function toChecksumAddress(hexNo0x: string): string {
+  const lower = hexNo0x.toLowerCase();
+  const hash = bytesToHex(keccak_256(utf8ToBytes(lower)));
+  let out = '';
+  for (let i = 0; i < lower.length; i++) {
+    out += parseInt(hash[i], 16) >= 8 ? lower[i].toUpperCase() : lower[i];
+  }
+  return `0x${out}`;
+}
+
 function evmAddress(priv: Uint8Array): string {
   const pub = secp256k1.getPublicKey(priv, false).slice(1); // drop 0x04
-  return `0x${bytesToHex(keccak_256(pub).slice(-20))}`;
+  return toChecksumAddress(bytesToHex(keccak_256(pub).slice(-20)));
 }
 
 // ── RLP ─────────────────────────────────────────────────────────────────────
@@ -95,7 +107,11 @@ export const evmAdapter: ChainAdapter = {
 
   async balanceOf(asset, address): Promise<bigint> {
     const token = asset.token;
-    if (token.kind !== 'erc20') throw new Error('EVM adapter requires an ERC-20 asset');
+    if (token.kind === 'native-evm') {
+      const result = await rpc<string>(token.rpcUrl, 'eth_getBalance', [address, 'latest']).catch(() => '0x0');
+      return hexToBigInt(result);
+    }
+    if (token.kind !== 'erc20') throw new Error('EVM adapter requires an EVM asset');
     // balanceOf(address) selector 0x70a08231
     const data = `0x70a08231${address.replace(/^0x/, '').toLowerCase().padStart(64, '0')}`;
     const result = await rpc<string>(token.rpcUrl, 'eth_call', [
@@ -107,13 +123,29 @@ export const evmAdapter: ChainAdapter = {
 
   async send(seed: Uint8Array, req: TransferRequest): Promise<string> {
     const token = req.asset.token;
-    if (token.kind !== 'erc20') throw new Error('EVM adapter requires an ERC-20 asset');
+    if (token.kind !== 'erc20' && token.kind !== 'native-evm') {
+      throw new Error('EVM adapter requires an EVM asset');
+    }
 
     const priv = evmPrivateKey(seed);
     const from = evmAddress(priv);
     const url = token.rpcUrl;
-    const data = buildTransferData(req.recipient, req.amount);
-    const toToken = hexToBytes(token.tokenContract.replace(/^0x/, ''));
+
+    // Native transfer pays the recipient directly (value, empty data); an ERC-20
+    // transfer calls the token contract (value 0, transfer() calldata).
+    let toAddress: string;
+    let value: bigint;
+    let data: Uint8Array;
+    if (token.kind === 'native-evm') {
+      toAddress = req.recipient;
+      value = req.amount;
+      data = new Uint8Array(0);
+    } else {
+      toAddress = token.tokenContract;
+      value = 0n;
+      data = buildTransferData(req.recipient, req.amount);
+    }
+    const toBytesField = hexToBytes(toAddress.replace(/^0x/, ''));
 
     const nonce = hexToBigInt(await rpc<string>(url, 'eth_getTransactionCount', [from, 'pending']));
     const block = await rpc<{ baseFeePerGas?: string }>(url, 'eth_getBlockByNumber', ['latest', false]);
@@ -121,7 +153,9 @@ export const evmAdapter: ChainAdapter = {
     const priorityFee = hexToBigInt(await rpc<string>(url, 'eth_maxPriorityFeePerGas', []).catch(() => '0x3b9aca00'));
     const maxFee = baseFee * 2n + priorityFee;
     const gasLimit = hexToBigInt(
-      await rpc<string>(url, 'eth_estimateGas', [{ from, to: token.tokenContract, data: `0x${bytesToHex(data)}` }]),
+      await rpc<string>(url, 'eth_estimateGas', [
+        { from, to: toAddress, value: `0x${value.toString(16)}`, data: `0x${bytesToHex(data)}` },
+      ]),
     );
 
     // EIP-1559 (type 0x02): rlp([chainId, nonce, maxPriorityFee, maxFee, gasLimit, to, value, data, accessList])
@@ -131,8 +165,8 @@ export const evmAdapter: ChainAdapter = {
       toBytes(priorityFee),
       toBytes(maxFee),
       toBytes(gasLimit),
-      toToken,
-      toBytes(0n),
+      toBytesField,
+      toBytes(value),
       data,
       [],
     ];
@@ -153,7 +187,42 @@ export const evmAdapter: ChainAdapter = {
 
   async verify(params: VerifyParams): Promise<VerifyResult> {
     const token = params.asset.token;
-    if (token.kind !== 'erc20') throw new Error('EVM adapter requires an ERC-20 asset');
+
+    if (token.kind === 'native-evm') {
+      const tx = await rpc<{ to?: string; from?: string; value?: string } | null>(
+        token.rpcUrl,
+        'eth_getTransactionByHash',
+        [params.txid],
+      ).catch(() => null);
+      if (!tx) {
+        return { found: false, confirmed: false, matches: false, detail: 'Transaction not found on EVM chain.' };
+      }
+      const receipt = await rpc<{ status?: string } | null>(token.rpcUrl, 'eth_getTransactionReceipt', [params.txid]).catch(
+        () => null,
+      );
+      const confirmed = receipt?.status === '0x1';
+      const toMatch = (tx.to ?? '').toLowerCase() === params.recipient.toLowerCase();
+      const valueMatch = hexToBigInt(tx.value ?? '0x0') === params.amount;
+      const fromMatch = !params.sender || (tx.from ?? '').toLowerCase() === params.sender.toLowerCase();
+      if (!toMatch || !valueMatch || !fromMatch) {
+        return {
+          found: true,
+          confirmed,
+          matches: false,
+          detail: confirmed
+            ? 'On-chain transfer does not match the advertised recipient or amount.'
+            : 'Transaction reverted or is not yet mined.',
+        };
+      }
+      return {
+        found: true,
+        confirmed,
+        matches: true,
+        detail: confirmed ? 'Verified on EVM chain.' : 'Transfer found but receipt not confirmed.',
+      };
+    }
+
+    if (token.kind !== 'erc20') throw new Error('EVM adapter requires an EVM asset');
 
     const receipt = await rpc<{
       status?: string;
