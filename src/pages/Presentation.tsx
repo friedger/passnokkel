@@ -6,6 +6,7 @@ import { ArrowLeft, ArrowRight, ExternalLink, Home } from 'lucide-react';
 import { ResponsiveQR } from '@/components/ResponsiveQR';
 import { cn } from '@/lib/utils';
 import {
+  CAIPZAPS_NIP_URL,
   CASHU_ISSUE_URL,
   CHORUS_PR_URL,
   DITTO_PR_URL,
@@ -153,6 +154,48 @@ const SLIDES: Slide[] = [
         alt="passnokkel web app showing the Upvote button"
         caption="No seed phrase. No extension. Just a biometric tap."
       />
+    ),
+  },
+  {
+    id: 'caipzaps',
+    title: 'Chain-agnostic zaps',
+    subtitle: 'Get zapped in sBTC — or any on-chain asset. No Lightning, no server.',
+    body: (
+      <div className="mx-auto flex w-full max-w-3xl flex-col items-center gap-6">
+        <div className="grid w-full gap-3 sm:grid-cols-3">
+          {[
+            {
+              step: 'Advertise',
+              kind: 'kind:10021',
+              detail: 'The recipient signs one replaceable event listing the assets and addresses they accept.',
+            },
+            {
+              step: 'Push',
+              kind: 'kind:9734 → on-chain',
+              detail: 'The sender pays the advertised address directly on-chain — sBTC on Stacks, ERC-20 on Ethereum.',
+            },
+            {
+              step: 'Verify',
+              kind: 'kind:9735',
+              detail: 'A signed receipt carries the txid; anyone confirms it on-chain against the signed advertisement.',
+            },
+          ].map((s) => (
+            <div
+              key={s.kind}
+              className="flex flex-col gap-2 rounded-2xl border bg-muted/40 p-4 text-left shadow-sm"
+            >
+              <span className="text-xs font-semibold uppercase tracking-wide text-primary">{s.step}</span>
+              <code className="text-[11px] text-muted-foreground">{s.kind}</code>
+              <p className="text-sm text-foreground">{s.detail}</p>
+            </div>
+          ))}
+        </div>
+        <p className="max-w-2xl text-center text-sm text-muted-foreground">
+          A passkey identity has no zap server — so discovery lives on Nostr itself and settlement is
+          verified straight from the chain. Bitcoin-backed micropayments with nothing but an npub.
+        </p>
+        <LinkPill href={CAIPZAPS_NIP_URL} label="Chain-Agnostic Zaps NIP (CAIP-358, kind:10021)" />
+      </div>
     ),
   },
   {

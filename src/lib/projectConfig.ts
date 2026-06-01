@@ -61,6 +61,11 @@ export const IOS_APP_URL = 'https://github.com/schjonhaug/nostr-passkey-poc';
 export const SPEC_URL = 'https://github.com/breez/passkey-login/blob/main/spec.md';
 export const REPO_URL = 'https://github.com/friedger/passnokkel';
 
+/** Chain-Agnostic Zaps NIP (NIP-57 + CAIP-358) and its serverless kind:10021
+ * acceptance-advertisement companion, published over Nostr via ngit (NIP-34). */
+export const CAIPZAPS_NIP_URL =
+  'https://gitworkshop.dev/npub1e83s5qd7thnpgnw4rxd8k4ucx4792t2r33sfrmw0ng27g36ame4sfyfv8d/relay.damus.io/nip-caip358-zaps';
+
 /** Links shown on the presentation deck. Fill these in before presenting. */
 export const HORCRUXBACKUP_ISSUE_URL = 'https://github.com/mplorentz/horcrux/issues/245';
 export const DITTO_PR_URL = 'https://gitworkshop.dev/npub1hlw2enn647n0dc04l4tydv44n4s7z83f9vhz6dpe4qzfwq39jp8swu9ecz/ditto';
