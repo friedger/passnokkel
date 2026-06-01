@@ -5,6 +5,7 @@ import { ArrowLeft, Check, Copy, Fingerprint, Loader2 } from 'lucide-react';
 
 import { LoginArea } from '@/components/auth/LoginArea';
 import { ResponsiveQR } from '@/components/ResponsiveQR';
+import { ZapAcceptanceManager } from '@/components/ZapAcceptanceManager';
 import { Button } from '@/components/ui/button';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { usePasskeyMnemonic } from '@/hooks/usePasskeyMnemonic';
@@ -237,6 +238,9 @@ const Wallet = () => {
                 <p className="px-5 py-6 text-sm text-destructive">Could not derive this address.</p>
               )}
             </div>
+
+            {/* Chain-agnostic zaps: advertise accepted assets (kind:10020). */}
+            {seed && <ZapAcceptanceManager seed={seed} />}
           </div>
         )}
       </main>

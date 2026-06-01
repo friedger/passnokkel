@@ -1,16 +1,24 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useSeoMeta } from '@unhead/react';
-import { Fingerprint, ThumbsUp } from 'lucide-react';
+import { Fingerprint, ThumbsUp, Zap } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { LoginArea } from '@/components/auth/LoginArea';
 import AuthDialog from '@/components/auth/AuthDialog';
 import { ReactorAvatars } from '@/components/ReactorAvatars';
+import { ZapDialog } from '@/components/ZapDialog';
+import { ZapList } from '@/components/ZapList';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useThumbsUp } from '@/hooks/useThumbsUp';
 import { toast } from '@/hooks/useToast';
-import { PROJECT_NAME, PROJECT_NEVENT, PROJECT_TAGLINE } from '@/lib/projectConfig';
+import {
+  PROJECT_AUTHOR_PUBKEY,
+  PROJECT_EVENT_ID,
+  PROJECT_NAME,
+  PROJECT_NEVENT,
+  PROJECT_TAGLINE,
+} from '@/lib/projectConfig';
 
 const Index = () => {
   useSeoMeta({
@@ -21,6 +29,17 @@ const Index = () => {
   const { user } = useCurrentUser();
   const { count, reacted, reactors, isPublishing, react } = useThumbsUp();
   const [authOpen, setAuthOpen] = useState(false);
+  const [zapOpen, setZapOpen] = useState(false);
+
+  const canZap = !!PROJECT_EVENT_ID && !!PROJECT_AUTHOR_PUBKEY;
+
+  const onZapClick = () => {
+    if (!user) {
+      setAuthOpen(true);
+      return;
+    }
+    setZapOpen(true);
+  };
 
   const onThumbClick = async () => {
     if (!user) {
@@ -89,6 +108,18 @@ const Index = () => {
             <span>{buttonLabel}</span>
           </Button>
 
+          {canZap && (
+            <Button
+              onClick={onZapClick}
+              variant="outline"
+              size="lg"
+              className="h-12 gap-2 rounded-full border-amber-500/40 px-7 text-amber-600 hover:bg-amber-500/10 hover:text-amber-700"
+            >
+              <Zap className="size-5" />
+              <span>{user ? 'Zap — put money on it' : 'Sign in to zap'}</span>
+            </Button>
+          )}
+
           <div className="flex items-baseline gap-2 text-muted-foreground">
             <span className="text-3xl">👍</span>
             <span className="text-2xl font-semibold tabular-nums text-foreground">
@@ -102,6 +133,12 @@ const Index = () => {
           {reactors.length > 0 && (
             <div className="mt-1">
               <ReactorAvatars pubkeys={reactors} />
+            </div>
+          )}
+
+          {canZap && (
+            <div className="mt-4 w-full max-w-md">
+              <ZapList eventId={PROJECT_EVENT_ID} />
             </div>
           )}
 
@@ -132,6 +169,15 @@ const Index = () => {
       </main>
 
       <AuthDialog isOpen={authOpen} onClose={() => setAuthOpen(false)} />
+      {canZap && (
+        <ZapDialog
+          isOpen={zapOpen}
+          onClose={() => setZapOpen(false)}
+          recipientPubkey={PROJECT_AUTHOR_PUBKEY}
+          eventId={PROJECT_EVENT_ID}
+          noteAuthorPubkey={PROJECT_AUTHOR_PUBKEY}
+        />
+      )}
     </div>
   );
 };
