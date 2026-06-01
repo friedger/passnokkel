@@ -16,6 +16,7 @@ import {
   PROJECT_NAME,
   PROJECT_NEVENT,
   PROJECT_TAGLINE,
+  PROJECT_ZAP_AUTHOR_NPUB,
   PROJECT_ZAP_AUTHOR_PUBKEY,
   PROJECT_ZAP_EVENT_ID,
 } from '@/lib/projectConfig';
@@ -144,6 +145,14 @@ const Index = () => {
                 <Zap className="size-5" />
                 <span>{user ? 'Zap — put money on it' : 'Sign in to zap'}</span>
               </Button>
+              <a
+                href={`https://njump.me/${PROJECT_ZAP_AUTHOR_NPUB}`}
+                target="_blank"
+                rel="noreferrer"
+                className="text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground"
+              >
+                See the author on njump
+              </a>
               <ZapList eventId={PROJECT_ZAP_EVENT_ID} />
             </div>
           )}

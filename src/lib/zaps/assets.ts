@@ -46,6 +46,11 @@ export interface ZapAsset {
   transferType: string;
   /** Token decimals, for amount entry/display. */
   decimals: number;
+  /**
+   * If set, amounts are entered and displayed as integer base units with this
+   * label (e.g. "sats" for sBTC) instead of the decimal symbol.
+   */
+  baseUnit?: string;
   token: StacksToken | EvmToken;
   adapter: ChainAdapter;
 }
@@ -68,6 +73,7 @@ export const ZAP_ASSETS: ZapAsset[] = [
     assetId: `stacks:1/${SBTC_CONTRACT}.sbtc-token.sbtc-token`,
     transferType: 'sip10-transfer',
     decimals: 8,
+    baseUnit: 'sats',
     token: {
       kind: 'sip10',
       contractAddress: SBTC_CONTRACT,
@@ -126,4 +132,22 @@ export function parseAmount(asset: ZapAsset, input: string): bigint {
   if (frac.length > asset.decimals) throw new Error(`Max ${asset.decimals} decimals`);
   const padded = frac.padEnd(asset.decimals, '0');
   return BigInt(whole || '0') * 10n ** BigInt(asset.decimals) + BigInt(padded || '0');
+}
+
+/** The unit label shown next to amounts: a base-unit label (e.g. "sats") or the symbol. */
+export function amountUnit(asset: ZapAsset): string {
+  return asset.baseUnit ?? asset.symbol;
+}
+
+/** Format a base-unit amount for display, respecting a base-unit asset (integer + thousands). */
+export function displayAmount(asset: ZapAsset, base: bigint): string {
+  return asset.baseUnit ? base.toLocaleString('en-US') : formatAmount(asset, base);
+}
+
+/** Parse a user-entered amount, respecting a base-unit asset (whole base units only). */
+export function parseInputAmount(asset: ZapAsset, input: string): bigint {
+  if (!asset.baseUnit) return parseAmount(asset, input);
+  const trimmed = input.trim();
+  if (!/^\d+$/.test(trimmed)) throw new Error(`Enter a whole number of ${asset.baseUnit}`);
+  return BigInt(trimmed);
 }

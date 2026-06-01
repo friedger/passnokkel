@@ -12,20 +12,22 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Switch } from '@/components/ui/switch';
 import { usePasskeyMnemonic } from '@/hooks/usePasskeyMnemonic';
 import { useZapAcceptance } from '@/hooks/useZapAcceptance';
 import { useSendZap, type ZapPhase } from '@/hooks/useSendZap';
 import { toast } from '@/hooks/useToast';
 import { cn } from '@/lib/utils';
 import { seedFromMnemonic } from '@/lib/wallet';
-import { findAssetByCaip19, parseAmount, type ZapAsset } from '@/lib/zaps/assets';
+import { amountUnit, findAssetByCaip19, parseInputAmount, type ZapAsset } from '@/lib/zaps/assets';
 import { accountAddress } from '@/lib/zaps/events';
 
 interface ZapOption {
   asset: ZapAsset;
   address: string;
 }
+
+/** Quick-fill amounts, in the selected asset's display unit (sats for sBTC). */
+const AMOUNT_PRESETS = [21, 50, 100, 1000];
 
 const PHASE_LABEL: Record<ZapPhase, string> = {
   idle: '',
@@ -56,7 +58,6 @@ export function ZapDialog({
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [amountInput, setAmountInput] = useState('');
-  const [withReaction, setWithReaction] = useState(true);
   const [acknowledged, setAcknowledged] = useState(false);
   const [result, setResult] = useState<{ txid: string; explorerUrl: string } | null>(null);
 
@@ -75,6 +76,18 @@ export function ZapDialog({
   const seed = useMemo(() => (mnemonic ? seedFromMnemonic(mnemonic) : null), [mnemonic]);
   const busy = phase !== 'idle' && phase !== 'error' && phase !== 'done';
 
+  // A valid, positive amount the user actually entered — required before they
+  // can unlock the wallet or send. Null while the field is empty or invalid.
+  const enteredAmount = useMemo(() => {
+    if (!selected) return null;
+    try {
+      const amount = parseInputAmount(selected.asset, amountInput);
+      return amount > 0n ? amount : null;
+    } catch {
+      return null;
+    }
+  }, [selected, amountInput]);
+
   const close = () => {
     if (busy) return;
     reset();
@@ -86,14 +99,11 @@ export function ZapDialog({
 
   const onSend = async () => {
     if (!selected || !seed) return;
-    let amount: bigint;
-    try {
-      amount = parseAmount(selected.asset, amountInput);
-      if (amount <= 0n) throw new Error('Amount must be greater than zero');
-    } catch (e) {
-      toast({ title: 'Invalid amount', description: e instanceof Error ? e.message : String(e), variant: 'destructive' });
+    if (enteredAmount === null) {
+      toast({ title: 'Enter an amount', description: `Enter how much ${amountUnit(selected.asset)} to zap.`, variant: 'destructive' });
       return;
     }
+    const amount = enteredAmount;
     try {
       const res = await sendZap({
         recipientPubkey,
@@ -103,7 +113,6 @@ export function ZapDialog({
         amount,
         comment: `${selected.asset.label} zap!`,
         seed,
-        withReaction,
         noteAuthorPubkey,
       });
       setResult(res);
@@ -202,27 +211,36 @@ export function ZapDialog({
             {selected && (
               <div>
                 <label className="mb-1.5 block text-xs font-medium text-muted-foreground" htmlFor="zap-amount">
-                  Amount ({selected.asset.symbol})
+                  Amount ({amountUnit(selected.asset)})
                 </label>
                 <Input
                   id="zap-amount"
-                  inputMode="decimal"
-                  placeholder={`0.0001`}
+                  inputMode={selected.asset.baseUnit ? 'numeric' : 'decimal'}
+                  placeholder={selected.asset.baseUnit ? '1000' : '0.0001'}
                   value={amountInput}
                   onChange={(e) => setAmountInput(e.target.value)}
                   disabled={busy}
                 />
+                <div className="mt-2 flex gap-2">
+                  {AMOUNT_PRESETS.map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => setAmountInput(String(preset))}
+                      disabled={busy}
+                      className={cn(
+                        'flex-1 rounded-lg border px-2 py-1.5 text-xs font-medium transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+                        amountInput === String(preset)
+                          ? 'border-primary bg-primary/5 text-primary'
+                          : 'border-border text-muted-foreground hover:bg-muted/50',
+                      )}
+                    >
+                      {preset.toLocaleString('en-US')}
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
-
-            {/* Boosted upvote toggle */}
-            <label className="flex items-center justify-between gap-3 rounded-lg border p-3">
-              <span className="text-sm">
-                Also upvote (👍)
-                <span className="block text-xs text-muted-foreground">Publish a reaction and link the zap to it</span>
-              </span>
-              <Switch checked={withReaction} onCheckedChange={setWithReaction} disabled={busy} />
-            </label>
 
             {/* Privacy warning */}
             <Alert variant="destructive" className="border-amber-500/30 bg-amber-500/5">
@@ -243,14 +261,22 @@ export function ZapDialog({
               I understand this payment is public and irreversible.
             </label>
 
-            {/* Action: unlock then send */}
+            {/* Action: unlock then send — both require a valid entered amount. */}
             {!seed ? (
-              <Button onClick={unlock} disabled={!supported || unlocking || !acknowledged} className="h-11 w-full">
+              <Button
+                onClick={unlock}
+                disabled={!supported || unlocking || !acknowledged || enteredAmount === null}
+                className="h-11 w-full"
+              >
                 {unlocking ? <Loader2 className="mr-2 size-4 animate-spin" /> : <Fingerprint className="mr-2 size-4" />}
                 Unlock wallet with passkey
               </Button>
             ) : (
-              <Button onClick={onSend} disabled={busy || !acknowledged || !amountInput} className="h-11 w-full">
+              <Button
+                onClick={onSend}
+                disabled={busy || !acknowledged || enteredAmount === null}
+                className="h-11 w-full"
+              >
                 {busy ? <Loader2 className="mr-2 size-4 animate-spin" /> : <Zap className="mr-2 size-4" />}
                 {busy ? PHASE_LABEL[phase] : `Zap ${selected?.asset.label ?? ''}`}
               </Button>

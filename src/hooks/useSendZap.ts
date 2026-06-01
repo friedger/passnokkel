@@ -7,7 +7,7 @@ import { useAppContext } from './useAppContext';
 import { APP_RELAYS } from '@/lib/appRelays';
 import { REACTION_CONTENT } from '@/lib/projectConfig';
 import type { ZapAsset } from '@/lib/zaps/assets';
-import { formatAmount } from '@/lib/zaps/assets';
+import { amountUnit, displayAmount } from '@/lib/zaps/assets';
 import {
   buildZapReceipt,
   buildZapRequest,
@@ -70,7 +70,7 @@ export function useSendZap() {
       const balance = await asset.adapter.balanceOf(asset, senderAddress);
       if (balance < params.amount) {
         throw new Error(
-          `Insufficient ${asset.label}: you hold ${formatAmount(asset, balance)}, need ${formatAmount(asset, params.amount)}.`,
+          `Insufficient ${asset.label}: you hold ${displayAmount(asset, balance)} ${amountUnit(asset)}, need ${displayAmount(asset, params.amount)} ${amountUnit(asset)}.`,
         );
       }
 

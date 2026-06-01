@@ -3,7 +3,7 @@ import { AlertTriangle, CheckCircle2, Clock, ExternalLink, Zap } from 'lucide-re
 import { useZaps, type VerifiedZap } from '@/hooks/useZaps';
 import { useAuthor } from '@/hooks/useAuthor';
 import { generateRandomProfile } from '@/lib/randomProfile';
-import { formatAmount } from '@/lib/zaps/assets';
+import { amountUnit, displayAmount } from '@/lib/zaps/assets';
 import type { ZapStatus } from '@/lib/zaps/verify';
 import { cn } from '@/lib/utils';
 
@@ -33,7 +33,7 @@ function ZapRow({ zap }: { zap: VerifiedZap }) {
           {v.asset && v.amount !== undefined && (
             <span className="text-muted-foreground">
               {' '}
-              zapped {formatAmount(v.asset, v.amount)} {v.asset.symbol}
+              zapped {displayAmount(v.asset, v.amount)} {amountUnit(v.asset)}
             </span>
           )}
         </p>
