@@ -1,18 +1,19 @@
-// NIP-57 + CAIP-358 zap events, plus the companion advertisement (kind:10020).
+// NIP-57 + CAIP-358 zap events, plus the companion advertisement (kind:10021).
 //
-//   kind:10020  acceptance advertisement — what assets/addresses a user accepts
+//   kind:10021  acceptance advertisement — what assets/addresses a user accepts
 //   kind:9734   zap request — sender's intent + a CAIP-358 payment request
 //   kind:9735   zap receipt — published by the sender for PUSH payments
 //
-// NOTE: 10020 is PROVISIONAL. The companion-NIP PR may land on a different
-// number; coordinate before shipping (see NIP.md). Treat it as a single source
-// of truth here so a later change is a one-line edit.
+// NOTE: 10021 is the LOCKED kind for the companion NIP (cocoa007's
+// nip-caip358-zaps). 10020 was used provisionally earlier but is already
+// allocated to "Media follows" (NIP-51); 10021 is the next free number and
+// keeps it adjacent to NIP-61's kind:10019. Single source of truth here.
 
 import type { NostrEvent } from '@nostrify/nostrify';
 
 import { chainsMatch, parseAccountId, parseAssetId } from './caip';
 
-export const KIND_ZAP_ACCEPT = 10020;
+export const KIND_ZAP_ACCEPT = 10021;
 export const KIND_ZAP_REQUEST = 9734;
 export const KIND_ZAP_RECEIPT = 9735;
 
@@ -20,7 +21,7 @@ export const KIND_ZAP_RECEIPT = 9735;
 export type ZapEventTemplate = Pick<NostrEvent, 'kind' | 'content'> &
   Partial<Pick<NostrEvent, 'tags' | 'created_at'>>;
 
-// ── kind:10020 — acceptance advertisement ───────────────────────────────────
+// ── kind:10021 — acceptance advertisement ───────────────────────────────────
 
 export interface AcceptEntry {
   /** CAIP-19 asset id. */
@@ -48,7 +49,7 @@ export function buildAcceptEvent(ad: Advertisement): ZapEventTemplate {
 }
 
 /**
- * Parse a 10020, dropping any `accept` entry whose CAIP-19 chain doesn't match
+ * Parse a 10021, dropping any `accept` entry whose CAIP-19 chain doesn't match
  * its CAIP-10 chain — the spec's first trust check, applied at the source.
  */
 export function parseAcceptEvent(event: NostrEvent): Advertisement {

@@ -5,7 +5,7 @@ import { KIND_ZAP_ACCEPT, parseAcceptEvent, type Advertisement } from '@/lib/zap
 
 /**
  * Fetch a user's latest chain-agnostic zap acceptance advertisement
- * (kind:10020). Filtered by author — a 10020 is a user-owned replaceable
+ * (kind:10021). Filtered by author — a 10021 is a user-owned replaceable
  * event, so the author is the trust boundary. Returns null when the user
  * hasn't enabled chain-agnostic zaps.
  */

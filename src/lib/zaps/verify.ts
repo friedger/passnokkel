@@ -3,7 +3,7 @@
 // For each kind:9735 receipt we:
 //   1. decode the embedded kind:9734 (the `description` tag),
 //   2. confirm the receipt's asset + recipient address match an `accept` entry
-//      in the recipient's signed kind:10020 — the ONLY trusted source of the
+//      in the recipient's signed kind:10021 — the ONLY trusted source of the
 //      address; never an address from the receipt or request alone,
 //   3. query the chain for the txid and confirm sender/recipient/asset/amount
 //      and finality.
@@ -20,7 +20,7 @@ export type ZapStatus =
   | 'verified' // advertised, on-chain, confirmed, all fields match
   | 'pending' // on-chain but not yet confirmed
   | 'mismatch' // on-chain but asset/recipient/amount disagree
-  | 'unadvertised' // address/asset not in the recipient's signed 10020 (trust fail)
+  | 'unadvertised' // address/asset not in the recipient's signed 10021 (trust fail)
   | 'unverifiable'; // tx missing, unknown asset, or chain/API error
 
 export interface ZapVerification {
@@ -94,9 +94,9 @@ export async function verifyZapReceipt(
 
   // ── TRUST ANCHOR ──────────────────────────────────────────────────────────
   // The recipient must have advertised this exact asset + receive address in
-  // their signed 10020. An address from the receipt/request alone is not trusted.
+  // their signed 10021. An address from the receipt/request alone is not trusted.
   if (!advertisement) {
-    return fail('unadvertised', "Recipient has no acceptance advertisement (kind:10020).", base);
+    return fail('unadvertised', "Recipient has no acceptance advertisement (kind:10021).", base);
   }
   const advertised = advertisement.accepts.some(
     (a) => a.asset === option.asset && accountAddress(a.account) === option.recipient,

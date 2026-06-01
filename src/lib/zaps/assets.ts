@@ -1,6 +1,6 @@
 // The assets passnokkel can zap with. Each entry binds:
 //   • display metadata (label/symbol/icon),
-//   • its CAIP-2 chain and CAIP-19 asset id (what gets advertised in kind:10020),
+//   • its CAIP-2 chain and CAIP-19 asset id (what gets advertised in kind:10021),
 //   • the on-chain token params, and
 //   • the ChainAdapter that derives the address, pushes the payment and verifies it.
 //

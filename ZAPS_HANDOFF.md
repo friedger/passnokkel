@@ -11,9 +11,9 @@ address matches the canonical BIP39 vector, RLP passes standard vectors, and the
 signature round-trips through public-key recovery.
 
 - **`src/lib/zaps/`** — `caip.ts` (CAIP-2/10/19 + chain-match check), `assets.ts` (sBTC on
-  Stacks + USDC on Ethereum, bound to adapters), `events.ts` (kind:10020 / 9734 / 9735
+  Stacks + USDC on Ethereum, bound to adapters), `events.ts` (kind:10021 / 9734 / 9735
   build+parse), `verify.ts` (trust path), `chains/{stacks,evm}.ts` (derive/send/verify/balance).
-- **Wallet page** → `ZapAcceptanceManager`: pick assets, publish `kind:10020`, privacy warning.
+- **Wallet page** → `ZapAcceptanceManager`: pick assets, publish `kind:10021`, privacy warning.
 - **Index page** → zap button + `ZapDialog` (discovery → passkey unlock → PUSH → receipt) and
   `ZapList` (verified zaps shown, unverifiable ones flagged not hidden). Boosted-upvote links a
   `kind:7` reaction to the zap.
@@ -29,15 +29,17 @@ events; the chain signer is the passkey-derived seed via `usePasskeyMnemonic` (R
    (USDC) path. The send path is wired and self-consistent but unexercised against a live node.
    - Stacks fee/nonce are fetched by `@stacks/transactions` at send time (network call).
    - EVM uses `https://ethereum-rpc.publicnode.com`; check nonce/gas estimation under real load.
-2. **Lock the kind number.** `kind:10020` is PROVISIONAL. Open an issue on cocoa007's
-   `nip-caip358-zaps` repo; if the companion NIP lands elsewhere, change `KIND_ZAP_ACCEPT`
-   in `src/lib/zaps/events.ts` (single source of truth) and update `NIP.md`.
+2. **Kind number — LOCKED at `kind:10021`** (was provisionally 10020, which is already
+   allocated to "Media follows" / NIP-51). Fixed by the companion NIP on cocoa007's
+   `nip-caip358-zaps` repo. `KIND_ZAP_ACCEPT` in `src/lib/zaps/events.ts` and `NIP.md` are
+   updated to match. Remaining: the upstream nostr-protocol/nips PR formally reserving 10021
+   in the kinds table is still pending.
 
 ## Good follow-ups (not blocking)
 
 - Show the sender's live balance per asset in `ZapDialog` (adapter `balanceOf` exists; currently
   only used as a pre-send guard, not surfaced in discovery).
-- Honor the recipient's `relay` tags from their 10020 when publishing 9734/9735 (currently uses
+- Honor the recipient's `relay` tags from their 10021 when publishing 9734/9735 (currently uses
   the sender's write relays; brief says fall back to NIP-65 if absent).
 - After broadcast, the receipt is published with `status: "pending"`; consider a follow-up
   publish (or let verify.ts's on-chain check drive the displayed status, which it already does).

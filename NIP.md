@@ -11,11 +11,12 @@ All three event kinds are signed by the user's **account-0 Nostr identity**
 
 ---
 
-## kind:10020 — chain-agnostic zap acceptance (PROVISIONAL)
+## kind:10021 — chain-agnostic zap acceptance
 
-> **Status: provisional.** This number is borrowed from the companion-NIP draft on cocoa007's
-> `nip-caip358-zaps` repo. If that PR lands on a different kind, change `KIND_ZAP_ACCEPT` in
-> `src/lib/zaps/events.ts` to match — it is the single source of truth in this codebase.
+> **Status: locked.** This number is fixed by the companion NIP on cocoa007's
+> `nip-caip358-zaps` repo (`nip-caip358-zap-advertisement.md`). 10020 was used in an
+> earlier draft but is already allocated to "Media follows" (NIP-51), so 10021 is used.
+> `KIND_ZAP_ACCEPT` in `src/lib/zaps/events.ts` remains the single source of truth in this codebase.
 
 A **replaceable** event (10000–19999): only the latest per pubkey is kept, so re-publishing
 replaces the prior advertisement. It declares which assets/addresses the author accepts.
@@ -31,7 +32,7 @@ replaces the prior advertisement. It declares which assets/addresses the author 
 
 ```json
 {
-  "kind": 10020,
+  "kind": 10021,
   "tags": [
     ["alt", "Chain-agnostic zap acceptance (NIP-57 + CAIP-358)"],
     ["relay", "wss://relay.damus.io"],
@@ -44,7 +45,7 @@ replaces the prior advertisement. It declares which assets/addresses the author 
 }
 ```
 
-**Trust:** a 10020 is user-owned and replaceable, so the **author is the trust boundary** —
+**Trust:** a 10021 is user-owned and replaceable, so the **author is the trust boundary** —
 always query by `authors`. The advertised, signed address is the only source of truth for where
 a zap may be sent; never trust an address from a receipt or request alone.
 
@@ -73,6 +74,6 @@ independently verifiable on-chain). Extended tags:
   require the tag don't choke.
 
 **Verification** (`src/lib/zaps/verify.ts`): decode `description` → 9734; confirm the receipt's
-asset + recipient address match an `accept` entry in the recipient's 10020 (trust anchor); then
+asset + recipient address match an `accept` entry in the recipient's 10021 (trust anchor); then
 query the chain for the `txid` and confirm sender/recipient/asset/amount and finality. Zaps that
 fail any step are flagged, not hidden.

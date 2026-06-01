@@ -13,7 +13,7 @@ import {
   type Advertisement,
 } from '@/lib/zaps/events';
 
-/** The user's inbox/write relays, used for the 10020 `relay` tags. */
+/** The user's inbox/write relays, used for the 10021 `relay` tags. */
 function useWriteRelays(): string[] {
   const { config } = useAppContext();
   const relays = config.relayMetadata.relays.filter((r) => r.write).map((r) => r.url);
@@ -22,7 +22,7 @@ function useWriteRelays(): string[] {
 
 /**
  * Read and publish the current user's chain-agnostic zap acceptance
- * advertisement (kind:10020). Publishing requires the passkey-derived seed so
+ * advertisement (kind:10021). Publishing requires the passkey-derived seed so
  * receive addresses are derived fresh — never persisted.
  */
 export function useZapAdvertisement() {

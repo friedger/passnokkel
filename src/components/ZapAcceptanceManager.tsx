@@ -35,7 +35,7 @@ function AssetLogo({ asset, size }: { asset: ZapAsset; size: number }) {
 
 /**
  * Enable chain-agnostic zaps: pick which passkey-derived assets to accept and
- * publish them as a signed kind:10020. The advertised address is the only
+ * publish them as a signed kind:10021. The advertised address is the only
  * source of truth a sender will trust, so we derive it fresh from the unlocked
  * seed here.
  */

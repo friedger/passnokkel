@@ -239,7 +239,7 @@ const Wallet = () => {
               )}
             </div>
 
-            {/* Chain-agnostic zaps: advertise accepted assets (kind:10020). */}
+            {/* Chain-agnostic zaps: advertise accepted assets (kind:10021). */}
             {seed && <ZapAcceptanceManager seed={seed} />}
           </div>
         )}
