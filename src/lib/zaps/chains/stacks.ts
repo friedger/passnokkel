@@ -4,8 +4,10 @@
 // the private key through @stacks/transactions, which (with the compression
 // suffix) reproduces the c32 address wallet.ts derives at m/44'/5757'/0'/0/0.
 //
-// Sends are sponsored: the user signs a zero-fee sponsored transaction and
-// tx2.app pays the STX fee and broadcasts it, so a zapper needs only sBTC.
+// Fee handling: if the sender holds enough STX to cover the fee, the tx is
+// broadcast normally (they pay their own fee). Only when they can't cover it
+// does it fall back to tx2.app — the user signs a zero-fee sponsored tx and
+// tx2 pays the STX fee and broadcasts, so a zapper can get by with only sBTC.
 
 import { HDKey } from '@scure/bip32';
 import { bytesToHex } from '@noble/hashes/utils.js';
@@ -13,6 +15,7 @@ import {
   Cl,
   PostConditionMode,
   Pc,
+  broadcastTransaction,
   getAddressFromPrivateKey,
   makeContractCall,
 } from '@stacks/transactions';
@@ -39,6 +42,18 @@ function stacksPrivateKey(seed: Uint8Array): string {
 
 function withPrefix(txid: string): string {
   return txid.startsWith('0x') ? txid : `0x${txid}`;
+}
+
+/** Spendable (unlocked) STX balance in microSTX. */
+async function stxBalance(address: string): Promise<bigint> {
+  const res = await fetch(`${HIRO_API}/extended/v1/address/${address}/stx`, {
+    signal: AbortSignal.timeout(8000),
+  });
+  if (!res.ok) return 0n;
+  const json = (await res.json()) as { balance?: string; locked?: string };
+  const total = json.balance ? BigInt(json.balance) : 0n;
+  const locked = json.locked ? BigInt(json.locked) : 0n;
+  return total > locked ? total - locked : 0n;
 }
 
 export const stacksAdapter: ChainAdapter = {
@@ -69,38 +84,52 @@ export const stacksAdapter: ChainAdapter = {
     const sender = getAddressFromPrivateKey(senderKey, NETWORK);
     const contractId = `${token.contractAddress}.${token.contractName}` as const;
 
-    const tx = await makeContractCall({
+    // SIP-010: (transfer (amount uint) (sender principal) (recipient principal) (memo (optional (buff 34))))
+    const functionArgs = [Cl.uint(req.amount), Cl.principal(sender), Cl.principal(req.recipient), Cl.none()];
+    // Deny mode + an exact-amount post-condition: the tx aborts unless it sends
+    // exactly `amount` of this token from us. No surprise transfers — and a
+    // sponsor can pay the fee but cannot alter the transfer.
+    const postConditions = [Pc.principal(sender).willSendEq(req.amount).ft(contractId, token.assetName)];
+
+    // Build a normal tx first (estimates the fee + fetches the nonce). If the
+    // sender can cover that fee in STX, broadcast it themselves.
+    const standardTx = await makeContractCall({
       contractAddress: token.contractAddress,
       contractName: token.contractName,
       functionName: 'transfer',
-      // SIP-010: (transfer (amount uint) (sender principal) (recipient principal) (memo (optional (buff 34))))
-      functionArgs: [
-        Cl.uint(req.amount),
-        Cl.principal(sender),
-        Cl.principal(req.recipient),
-        Cl.none(),
-      ],
+      functionArgs,
       senderKey,
       network: NETWORK,
-      // Sponsored: the user signs with a zero fee; tx2.app pays the network fee
-      // and broadcasts. The origin (sender) nonce is fetched automatically.
+      postConditionMode: PostConditionMode.Deny,
+      postConditions,
+    });
+    const fee = standardTx.auth.spendingCondition.fee;
+    if ((await stxBalance(sender)) >= fee) {
+      const result = await broadcastTransaction({ transaction: standardTx, network: NETWORK });
+      if ('error' in result && result.error) {
+        throw new Error(`Broadcast rejected: ${result.error}${result.reason ? ` (${result.reason})` : ''}`);
+      }
+      return withPrefix(result.txid);
+    }
+
+    // Not enough STX for the fee → sign a zero-fee sponsored tx and hand it to
+    // tx2.app, which adds the sponsor signature, pays the fee and broadcasts it.
+    const sponsoredTx = await makeContractCall({
+      contractAddress: token.contractAddress,
+      contractName: token.contractName,
+      functionName: 'transfer',
+      functionArgs,
+      senderKey,
+      network: NETWORK,
       sponsored: true,
       fee: 0,
-      // Deny mode + an exact-amount post-condition: the tx aborts unless it
-      // sends exactly `amount` of this token from us. The sponsor pays the fee
-      // but cannot alter the transfer.
       postConditionMode: PostConditionMode.Deny,
-      postConditions: [
-        Pc.principal(sender).willSendEq(req.amount).ft(contractId, token.assetName),
-      ],
+      postConditions,
     });
-
-    // Hand the user-signed (but unsponsored) tx to tx2.app, which adds the
-    // sponsor signature, pays the fee and broadcasts it.
     const res = await fetch(TX2_SPONSOR_URL, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ tx: tx.serialize() }),
+      body: JSON.stringify({ tx: sponsoredTx.serialize() }),
       signal: AbortSignal.timeout(20000),
     });
     if (!res.ok) {
