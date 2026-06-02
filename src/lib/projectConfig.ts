@@ -67,10 +67,6 @@ export const PROJECT_ZAP_EVENT_ID = zapTarget.eventId;
  */
 export const PROJECT_ZAP_AUTHOR_PUBKEY =
   zapTarget.authorPubkey || 'c9e30a01be5de6144dd5199a7b5798357c552d438c6091edcf9a15e4475dde6b';
-/** npub of the zap target's author, for an njump profile link. */
-export const PROJECT_ZAP_AUTHOR_NPUB = PROJECT_ZAP_AUTHOR_PUBKEY
-  ? nip19.npubEncode(PROJECT_ZAP_AUTHOR_PUBKEY)
-  : '';
 
 export const PROJECT_NAME = 'passnokkel';
 export const PROJECT_TAGLINE = 'A Nostr identity from a passkey';
