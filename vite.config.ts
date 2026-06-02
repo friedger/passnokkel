@@ -6,8 +6,9 @@ import { defineConfig } from "vitest/config";
 
 // https://vitejs.dev/config/
 export default defineConfig(() => ({
-  // Served from a GitHub Pages project subpath: https://friedger.github.io/passnokkel/
-  base: "/passnokkel/",
+  // Root by default (Netlify serves at the domain root). The GitHub Pages
+  // workflow sets DEPLOY_BASE=/passnokkel/ for the project-subpath deploy.
+  base: process.env.DEPLOY_BASE || "/",
   server: {
     host: "::",
     port: 8080,

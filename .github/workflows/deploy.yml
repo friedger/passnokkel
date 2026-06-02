@@ -38,6 +38,10 @@ jobs:
           cache: npm
 
       - name: Install dependencies and build
+        env:
+          # Project pages live at https://friedger.github.io/passnokkel/.
+          # Netlify (default build) serves at root, so it leaves this unset.
+          DEPLOY_BASE: /passnokkel/
         run: |
           npm install
           npm run build

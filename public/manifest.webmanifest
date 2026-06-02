@@ -2,14 +2,14 @@
   "name": "passnokkel — Nostr identity from a passkey",
   "short_name": "passnokkel",
   "description": "A cross-platform demo of the Breez Passkey Login spec — derive a Nostr identity from a single passkey.",
-  "start_url": "/passnokkel/",
-  "scope": "/passnokkel/",
+  "start_url": ".",
+  "scope": ".",
   "display": "standalone",
   "background_color": "#0b0512",
   "theme_color": "#6d28d9",
   "icons": [
     {
-      "src": "/passnokkel/icon.png",
+      "src": "./icon.png",
       "sizes": "1024x1024",
       "type": "image/png",
       "purpose": "any"
