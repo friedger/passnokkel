@@ -24,11 +24,20 @@ events; the chain signer is the passkey-derived seed via `usePasskeyMnemonic` (R
 
 ## NOT yet verified — do this first next session
 
-1. **Live mainnet smoke test.** No real broadcast has run. Send a tiny sBTC amount end-to-end
-   (advertise → zap → receipt → see it render verified, txid on Hiro explorer). Then the EVM
-   (USDC) path. The send path is wired and self-consistent but unexercised against a live node.
-   - Stacks fee/nonce are fetched by `@stacks/transactions` at send time (network call).
-   - EVM uses `https://ethereum-rpc.publicnode.com`; check nonce/gas estimation under real load.
+1. **Live mainnet smoke test.** No real broadcast has run for any asset. Send a tiny amount of
+   each end-to-end (advertise → zap → receipt → render verified, txid on the explorer). The send
+   paths are wired and self-consistent but unexercised against a live node.
+   - **sBTC (Stacks):** fee/nonce fetched by `@stacks/transactions`; self-paid if the sender holds
+     STX, else fee-sponsored via tx2.app (`/v1/sponsor`) — exercise BOTH branches.
+   - **USDC / native ETH (eip155):** hand-rolled EIP-1559 via `https://ethereum-rpc.publicnode.com`;
+     check nonce/gas estimation under real load.
+   - **native SOL (solana):** System-Program transfer via `api.mainnet-beta.solana.com`.
+   - **EURC (SPL on Solana):** the riskiest. The associated-token-account (ATA) derivation in
+     `sol.ts` (`associatedTokenAddress`) was validated against the on-curve primitive
+     (`ed25519.Point.fromBytes`, basepoint→on-curve confirmed) but NOT cross-checked against a live
+     ATA — every free Solana RPC blocked `getTokenLargestAccounts`/keyed calls. Before trusting it,
+     confirm a derived ATA matches the chain (e.g. `getTokenAccountsByOwner`), and note the send
+     funds the recipient's ATA rent (`CreateIdempotent`), so the sender needs a little SOL.
 2. **Kind number — LOCKED at `kind:10021`** (was provisionally 10020, which is already
    allocated to "Media follows" / NIP-51). Fixed by the companion NIP on cocoa007's
    `nip-caip358-zaps` repo. `KIND_ZAP_ACCEPT` in `src/lib/zaps/events.ts` and `NIP.md` are

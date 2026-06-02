@@ -41,6 +41,14 @@ export interface SolToken {
   rpcUrl: string;
 }
 
+export interface SplToken {
+  kind: 'spl';
+  /** SPL token mint address (base58). */
+  mint: string;
+  /** Public Solana JSON-RPC endpoint used for blockhash, broadcast and verification. */
+  rpcUrl: string;
+}
+
 export interface ZapAsset {
   /** Stable internal id. */
   id: string;
@@ -65,7 +73,7 @@ export interface ZapAsset {
    * label (e.g. "sats" for sBTC) instead of the decimal symbol.
    */
   baseUnit?: string;
-  token: StacksToken | EvmToken | EvmNativeToken | SolToken;
+  token: StacksToken | EvmToken | EvmNativeToken | SolToken | SplToken;
   adapter: ChainAdapter;
 }
 
@@ -148,6 +156,25 @@ export const ZAP_ASSETS: ZapAsset[] = [
     decimals: 9,
     token: {
       kind: 'sol',
+      rpcUrl: 'https://api.mainnet-beta.solana.com',
+    },
+    adapter: solAdapter,
+  },
+  {
+    id: 'eurc-sol',
+    label: 'EURC',
+    symbol: 'EURC',
+    color: '#2775CA',
+    icon: `${TW}/solana/assets/HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr/logo.png`,
+    chainName: 'Solana',
+    caip2: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+    // CAIP-19 SPL token asset: token:<mint>.
+    assetId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr',
+    transferType: 'spl-transfer',
+    decimals: 6,
+    token: {
+      kind: 'spl',
+      mint: 'HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr',
       rpcUrl: 'https://api.mainnet-beta.solana.com',
     },
     adapter: solAdapter,
