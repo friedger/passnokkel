@@ -73,6 +73,12 @@ export interface ZapAsset {
    * label (e.g. "sats" for sBTC) instead of the decimal symbol.
    */
   baseUnit?: string;
+  /**
+   * Quick-fill amounts in the asset's display unit, chosen to be roughly
+   * value-comparable across coins (tip-sized, ~a cent to ~a dollar) — so the
+   * presets mean similar value whether the user picks sBTC, SOL or ETH.
+   */
+  presets: string[];
   token: StacksToken | EvmToken | EvmNativeToken | SolToken | SplToken;
   adapter: ChainAdapter;
 }
@@ -96,6 +102,7 @@ export const ZAP_ASSETS: ZapAsset[] = [
     transferType: 'sip10-transfer',
     decimals: 8,
     baseUnit: 'sats',
+    presets: ['21', '50', '100', '1000'], // sats: ≈ $0.01–$0.60
     token: {
       kind: 'sip10',
       contractAddress: SBTC_CONTRACT,
@@ -115,6 +122,7 @@ export const ZAP_ASSETS: ZapAsset[] = [
     assetId: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
     transferType: 'erc20-transfer',
     decimals: 6,
+    presets: ['0.01', '0.05', '0.1', '0.5'], // USDC ≈ $0.01–$0.50
     token: {
       kind: 'erc20',
       tokenContract: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
@@ -135,6 +143,7 @@ export const ZAP_ASSETS: ZapAsset[] = [
     assetId: 'eip155:1/slip44:60',
     transferType: 'eth-transfer',
     decimals: 18,
+    presets: ['0.0001', '0.0005', '0.001', '0.005'], // ETH: tip-sized at ~$3k/ETH
     token: {
       kind: 'native-evm',
       chainId: 1,
@@ -154,6 +163,7 @@ export const ZAP_ASSETS: ZapAsset[] = [
     assetId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
     transferType: 'sol-transfer',
     decimals: 9,
+    presets: ['0.0005', '0.001', '0.005', '0.01'], // SOL: tip-sized at ~$150/SOL
     token: {
       kind: 'sol',
       rpcUrl: 'https://api.mainnet-beta.solana.com',
@@ -174,6 +184,7 @@ export const ZAP_ASSETS: ZapAsset[] = [
     assetId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr',
     transferType: 'spl-transfer',
     decimals: 6,
+    presets: ['0.01', '0.05', '0.1', '0.5'], // EURC ≈ €0.01–€0.50
     token: {
       kind: 'spl',
       mint: 'HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr',

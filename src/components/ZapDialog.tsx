@@ -27,9 +27,6 @@ interface ZapOption {
   address: string;
 }
 
-/** Quick-fill amounts, in the selected asset's display unit (sats for sBTC). */
-const AMOUNT_PRESETS = [21, 50, 100, 1000];
-
 const PHASE_LABEL: Record<ZapPhase, string> = {
   idle: '',
   reacting: 'Publishing your upvote…',
@@ -218,20 +215,21 @@ export function ZapDialog({
                   disabled={busy}
                 />
                 <div className="mt-2 flex gap-2">
-                  {AMOUNT_PRESETS.map((preset) => (
+                  {selected.asset.presets.map((preset) => (
                     <button
                       key={preset}
                       type="button"
-                      onClick={() => setAmountInput(String(preset))}
+                      onClick={() => setAmountInput(preset)}
                       disabled={busy}
                       className={cn(
                         'flex-1 rounded-lg border px-2 py-1.5 text-xs font-medium transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary',
-                        amountInput === String(preset)
+                        amountInput === preset
                           ? 'border-primary bg-primary/5 text-primary'
                           : 'border-border text-muted-foreground hover:bg-muted/50',
                       )}
                     >
-                      {preset.toLocaleString('en-US')}
+                      {/* group thousands for integer presets (sats); leave decimals as-is */}
+                      {preset.includes('.') ? preset : preset.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
                     </button>
                   ))}
                 </div>
