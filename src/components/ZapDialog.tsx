@@ -9,6 +9,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AssetLogo } from '@/components/AssetLogo';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -191,12 +192,7 @@ export function ZapDialog({
                     selected?.asset.id === asset.id ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted/50',
                   )}
                 >
-                  <span
-                    className="flex size-8 items-center justify-center rounded-full text-[10px] font-bold uppercase text-white"
-                    style={{ backgroundColor: asset.color }}
-                  >
-                    {asset.symbol.slice(0, 2)}
-                  </span>
+                  <AssetLogo asset={asset} size={32} />
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-semibold">
                       {asset.label} <span className="font-normal text-muted-foreground">on {asset.chainName}</span>

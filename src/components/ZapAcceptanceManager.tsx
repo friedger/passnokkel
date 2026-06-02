@@ -2,36 +2,12 @@ import { useMemo, useState } from 'react';
 import { Check, Loader2, ShieldAlert, Zap } from 'lucide-react';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AssetLogo } from '@/components/AssetLogo';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/useToast';
 import { useZapAdvertisement } from '@/hooks/useZapAdvertisement';
 import { cn } from '@/lib/utils';
-import { ZAP_ASSETS, type ZapAsset } from '@/lib/zaps/assets';
-
-function AssetLogo({ asset, size }: { asset: ZapAsset; size: number }) {
-  const [failed, setFailed] = useState(false);
-  const px = { width: size, height: size };
-  if (failed) {
-    return (
-      <span
-        className="flex items-center justify-center rounded-full font-bold uppercase text-white"
-        style={{ ...px, backgroundColor: asset.color, fontSize: size * 0.3 }}
-      >
-        {asset.symbol.slice(0, 2)}
-      </span>
-    );
-  }
-  return (
-    <img
-      src={asset.icon}
-      alt={asset.label}
-      loading="lazy"
-      style={px}
-      className="rounded-full object-contain"
-      onError={() => setFailed(true)}
-    />
-  );
-}
+import { ZAP_ASSETS } from '@/lib/zaps/assets';
 
 /**
  * Enable chain-agnostic zaps: pick which passkey-derived assets to accept and
