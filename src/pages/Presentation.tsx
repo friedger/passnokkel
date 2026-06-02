@@ -19,7 +19,7 @@ import {
 } from '@/lib/projectConfig';
 import { asset } from '@/lib/asset';
 
-const SITE_URL = 'https://friedger.github.io/passnokkel';
+const SITE_URL = 'https://passnokkel.netlify.app';
 
 /** The title-slide QR. Uses the shared ResponsiveQR but feeds it a height
  * reserve measured from the deck's real chrome (header, footer, title block and
