@@ -152,7 +152,7 @@ const Index = () => {
                 rel="noreferrer"
                 className="text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground"
               >
-                See the note on njump
+                See the post on njump
               </a>
               <ZapList eventId={PROJECT_ZAP_EVENT_ID} />
             </div>
