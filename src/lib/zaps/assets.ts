@@ -165,7 +165,9 @@ export const ZAP_ASSETS: ZapAsset[] = [
     label: 'EURC',
     symbol: 'EURC',
     color: '#2775CA',
-    icon: `${TW}/solana/assets/HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr/logo.png`,
+    // EURC's mark from the same CDN as USDC/ETH (Trust Wallet has no Solana entry
+    // for this mint; EURC is the same token across chains, so the ETH logo fits).
+    icon: `${TW}/ethereum/assets/0x1aBaEA1f7C830bD89Acc67eC4af516284b1bC33c/logo.png`,
     chainName: 'Solana',
     caip2: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
     // CAIP-19 SPL token asset: token:<mint>.
