@@ -6,6 +6,8 @@ import { defineConfig } from "vitest/config";
 
 // https://vitejs.dev/config/
 export default defineConfig(() => ({
+  // Served from a GitHub Pages project subpath: https://friedger.github.io/passnokkel/
+  base: "/passnokkel/",
   server: {
     host: "::",
     port: 8080,

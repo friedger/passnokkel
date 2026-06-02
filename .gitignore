@@ -33,3 +33,10 @@ yarn.lock
 .env
 .env.*
 !.env.example
+
+# merge-tool leftovers
+*.orig
+*_BACKUP_*
+*_BASE_*
+*_LOCAL_*
+*_REMOTE_*

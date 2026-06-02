@@ -11,6 +11,7 @@ import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { usePasskeyMnemonic } from '@/hooks/usePasskeyMnemonic';
 import { toast } from '@/hooks/useToast';
 import { cn } from '@/lib/utils';
+import { asset } from '@/lib/asset';
 import { PROJECT_NAME } from '@/lib/projectConfig';
 import { CURRENCIES, type Currency, seedFromMnemonic } from '@/lib/wallet';
 
@@ -115,7 +116,7 @@ const Wallet = () => {
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/40">
       <header className="container mx-auto flex items-center justify-between px-6 py-5">
         <Link to="/" className="flex items-center gap-2 text-sm font-semibold tracking-tight">
-          <img src="/icon.png" alt="" className="size-7 rounded-lg" />
+          <img src={asset('icon.png')} alt="" className="size-7 rounded-lg" />
           {PROJECT_NAME}
         </Link>
         <LoginArea />

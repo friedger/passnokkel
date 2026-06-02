@@ -11,7 +11,8 @@ import NotFound from "./pages/NotFound";
 
 export function AppRouter() {
   return (
-    <BrowserRouter>
+    // basename keeps routes working under the GitHub Pages subpath (/passnokkel/).
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
       <ScrollToTop />
       <Routes>
         <Route path="/" element={<Index />} />

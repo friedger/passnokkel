@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { LoginArea } from '@/components/auth/LoginArea';
 import AuthDialog from '@/components/auth/AuthDialog';
 import { ReactorAvatars } from '@/components/ReactorAvatars';
+import { asset } from '@/lib/asset';
 import { ZapDialog } from '@/components/ZapDialog';
 import { ZapList } from '@/components/ZapList';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
@@ -72,7 +73,7 @@ const Index = () => {
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/40">
       <header className="container mx-auto flex items-center justify-between px-6 py-5">
         <Link to="/" className="flex items-center gap-2 text-sm font-semibold tracking-tight">
-          <img src="/icon.png" alt="" className="size-7 rounded-lg" />
+          <img src={asset('icon.png')} alt="" className="size-7 rounded-lg" />
           {PROJECT_NAME}
         </Link>
         <LoginArea />
@@ -80,7 +81,7 @@ const Index = () => {
 
       <main className="container mx-auto flex flex-col items-center px-6 pb-24 pt-12 sm:pt-20">
         <img
-          src="/icon.png"
+          src={asset('icon.png')}
           alt={`${PROJECT_NAME} mascot`}
           className="size-36 sm:size-44 rounded-3xl shadow-xl shadow-primary/20"
         />

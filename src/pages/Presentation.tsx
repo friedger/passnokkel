@@ -17,8 +17,9 @@ import {
   SPEC_URL,
   TREASURES_PR_URL,
 } from '@/lib/projectConfig';
+import { asset } from '@/lib/asset';
 
-const SITE_URL = 'https://passnokkel.netlify.app';
+const SITE_URL = 'https://friedger.github.io/passnokkel';
 
 /** The title-slide QR. Uses the shared ResponsiveQR but feeds it a height
  * reserve measured from the deck's real chrome (header, footer, title block and
@@ -137,7 +138,7 @@ const SLIDES: Slide[] = [
     subtitle: 'Sign a Nostr note from your passkey — on iPhone and Mac.',
     body: (
       <SlideImage
-        src="/slides/ios.png"
+        src={asset('slides/ios.png')}
         alt="passnokkel iOS app — Nostr without key management"
         orientation="portrait"
         caption="Face ID + a synced passkey. No keys to copy."
@@ -150,7 +151,7 @@ const SLIDES: Slide[] = [
     subtitle: 'Same passkey → same npub. Tap to upvote.',
     body: (
       <SlideImage
-        src="/slides/web.png"
+        src={asset('slides/web.png')}
         alt="passnokkel web app showing the Upvote button"
         caption="No seed phrase. No extension. Just a biometric tap."
       />
@@ -204,7 +205,7 @@ const SLIDES: Slide[] = [
     subtitle: 'A passkey can vanish. Here is the problem we filed.',
     body: (
       <div className="mx-auto flex w-full max-w-3xl flex-col items-center gap-6">
-        <SlideImage src="/slides/horcrux.png" alt="horcruxbackup.com issue thread" />
+        <SlideImage src={asset('slides/horcrux.png')} alt="horcruxbackup.com issue thread" />
         <LinkPill href={HORCRUXBACKUP_ISSUE_URL} label="Read the issue" />
       </div>
     ),
@@ -215,7 +216,7 @@ const SLIDES: Slide[] = [
     subtitle: 'Bringing passkey login to Soapbox‑Pub Ditto.',
     body: (
       <div className="mx-auto flex w-full max-w-3xl flex-col items-center gap-6">
-        <SlideImage src="/slides/ditto.png" alt="Ditto merge request diff" />
+        <SlideImage src={asset('slides/ditto.png')} alt="Ditto merge request diff" />
         <LinkPill href={DITTO_PR_URL} label="Open the Ditto MR" />
       </div>
     ),
@@ -274,7 +275,7 @@ const Presentation = () => {
     <div className="flex min-h-screen flex-col bg-gradient-to-b from-background via-background to-primary/5">
       <header className="container mx-auto flex items-center justify-between px-6 py-4">
         <Link to="/" className="flex items-center gap-2 text-sm font-semibold tracking-tight">
-          <img src="/icon.png" alt="" className="size-7 rounded-lg" />
+          <img src={asset('icon.png')} alt="" className="size-7 rounded-lg" />
           {PROJECT_NAME}
         </Link>
         <Link
